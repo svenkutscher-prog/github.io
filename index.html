@@ -166,9 +166,9 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     return `rgb(${m(r)},${m(g)},${m(b)})`;
   }
 
-  // Countdown (Annahmeschluss Di + Fr, 19:00)
+  // Countdown bis zur Freitagsziehung (ca. 20:00)
   function naechsterSchluss(now){
-    for(let i=0;i<8;i++){const d=new Date(now);d.setDate(now.getDate()+i);d.setHours(19,0,0,0);const w=d.getDay();if((w===2||w===5)&&d>now)return d}
+    for(let i=0;i<8;i++){const d=new Date(now);d.setDate(now.getDate()+i);d.setHours(20,0,0,0);if(d.getDay()===5&&d>now)return d}
   }
   function countdownText(){
     const now=new Date(), d=naechsterSchluss(now); if(!d) return '';
@@ -194,7 +194,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       a.append(b);
     }
     const foot=el('div','ej-foot');
-    const left=el('span'); left.append('Annahmeschluss in ');
+    const left=el('span'); left.append('Nächste Ziehung in ');
     const cd=el('b',null,countdownText()); cd.id='cd'; left.append(cd);
     foot.append(left); a.append(foot);
     return a;
