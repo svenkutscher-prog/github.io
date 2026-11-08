@@ -78,6 +78,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .ej-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;position:relative;font-size:14px;color:var(--muted)}
 .ej-foot b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .empty{margin:28px 4px;color:var(--muted)}
+.badge{position:absolute;top:-8px;right:-10px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF3B30;color:#fff;font:700 13px/22px Geist,-apple-system,sans-serif;text-align:center;box-shadow:0 0 0 2px rgba(15,19,48,.85),0 6px 14px -4px rgba(255,59,48,.8);animation:pop .6s cubic-bezier(.2,1.4,.3,1) both}
 
 /* Gruppen */
 .group{grid-column:span 2;border-radius:30px;padding:14px;display:flex;flex-direction:column;gap:14px}
@@ -132,6 +133,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   // Energie-Dashboard: gleiche Datenquelle wie im Dashboard selbst
   const ENERGIE_API = 'https://script.google.com/macros/s/AKfycbxvXeeBPFz7J7rvIV6zGa6Dllq--a53RBE4Lbq49d6jqokph8GEt9PeWR1GR6_EJUoQjw/exec';
   const ENERGIE_CACHE = 'wagael_v3';
+  // myplan: offene Einträge der Einkaufsliste (gleiche Airtable-Daten wie in myplan)
+  const MYPLAN = {
+    base: 'appMXs8muaZVg3xxN',
+    token: 'patxRn3XE4fIDytHi.21480c9d52102110c8d7d8fcc9f791cc4eb7402d079db12b22a20d1d8c5db7cd',
+    tabelle: 'ShoppingNeeds',
+    cache: 'nouriDataCache_v1',
+    ziel: '#einkaufen'
+  };
 
   const ICONS = {
     kalender:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
@@ -149,7 +158,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   const ARROW='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(242,244,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
   const $=id=>document.getElementById(id);
 
-  let projekte=[], gruppen=[], ziehung=null, q='', erstesRender=true, energieDatum='';
+  let projekte=[], gruppen=[], ziehung=null, q='', erstesRender=true, energieDatum='', einkaufOffen=0;
 
   // Kopfzeile
   $('profil').href='https://github.com/'+GITHUB_USER;
@@ -210,6 +219,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const row=el('div','row');
     const chip=el('span','chip'); chip.style.background=c+'33'; chip.style.border='1px solid '+c+'73';
     chip.innerHTML=svg(ICONS[p.icon]||ICONS.ordner,hell(c),klein?20:22);
+    if(/\/myplan\//i.test(p.url)){a.dataset.myplan=p.url.replace(/#.*$/,'');a.dataset.name=p.name;chip.style.position='relative';setTimeout(()=>einkaufZeigen(),0)}
     row.append(chip); row.insertAdjacentHTML('beforeend',klein?ARROW.replace(/18/g,'16'):ARROW); a.append(row);
     const t=el('div'); t.style.position='relative';
     t.append(el('span','name',p.name)); if(p.beschreibung) t.append(el('span','sub',p.beschreibung));
@@ -289,8 +299,43 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     energieZeigen();
   }
 
+  // Einkaufsliste aus myplan: rote Badge mit Anzahl offener Einträge
+  function einkaufZeigen(){
+    document.querySelectorAll('a[data-myplan]').forEach(a=>{
+      const chip=a.querySelector('.chip'); if(!chip) return;
+      let b=chip.querySelector('.badge');
+      if(einkaufOffen>0){
+        if(!b){b=el('span','badge');b.setAttribute('aria-hidden','true');chip.append(b)}
+        b.textContent=einkaufOffen>99?'99+':einkaufOffen;
+        a.href=a.dataset.myplan+MYPLAN.ziel;
+        a.setAttribute('aria-label',`${a.dataset.name}: ${einkaufOffen} ${einkaufOffen===1?'Artikel':'Artikel'} auf der Einkaufsliste`);
+      }else{
+        if(b) b.remove();
+        a.href=a.dataset.myplan; a.removeAttribute('aria-label');
+      }
+    });
+  }
+  async function ladeEinkauf(){
+    try{ // sofort: Zwischenspeicher von myplan auf diesem Gerät
+      const c=JSON.parse(localStorage.getItem(MYPLAN.cache)||'null');
+      const l=c&&c.data&&c.data.shoppingNeeds;
+      if(Array.isArray(l)){einkaufOffen=l.filter(x=>x&&x.status==='offen').length;einkaufZeigen()}
+    }catch(e){}
+    try{ // dann live aus Airtable
+      let anzahl=0, offset='';
+      do{
+        const u=`https://api.airtable.com/v0/${MYPLAN.base}/${encodeURIComponent(MYPLAN.tabelle)}?pageSize=100&fields%5B%5D=Status&filterByFormula=${encodeURIComponent("{Status}='offen'")}`+(offset?'&offset='+offset:'');
+        const r=await fetch(u,{headers:{Authorization:'Bearer '+MYPLAN.token}});
+        if(!r.ok) throw 0;
+        const j=await r.json(); anzahl+=(j.records||[]).length; offset=j.offset||'';
+      }while(offset);
+      einkaufOffen=anzahl; einkaufZeigen();
+    }catch(e){}
+  }
+
   setInterval(kopf,60000);
-  kopf(); laden(); ladeEnergie();
+  kopf(); laden(); ladeEnergie(); ladeEinkauf();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie()}});
 })();
 </script>
 </body>
