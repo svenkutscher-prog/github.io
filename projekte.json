@@ -1,10 +1,12 @@
 {
+  "gruppen": [
+    { "name": "fotoArtisan", "farbe": "#FF7AB6", "icon": "blende" }
+  ],
   "projekte": [
-    { "name": "myplan",                "beschreibung": "github.io/myplan",                "url": "https://svenkutscher-prog.github.io/myplan/",                "farbe": "#5B8CFF", "icon": "kalender" },
-    { "name": "Diag8Decoder",          "beschreibung": "github.io/Diag8Decoder",          "url": "https://svenkutscher-prog.github.io/Diag8Decoder/",          "farbe": "#2EE6C5", "icon": "code" },
-    { "name": "energie-dashboard",     "beschreibung": "github.io/energie-dashboard",     "url": "https://svenkutscher-prog.github.io/energie-dashboard/",     "farbe": "#FFB547", "icon": "blitz" },
-    { "name": "rechner",               "beschreibung": "github.io/rechner",               "url": "https://svenkutscher-prog.github.io/rechner/",               "farbe": "#E879F9", "icon": "rechner" },
-    { "name": "diag8watcher",          "beschreibung": "github.io/diag8watcher",          "url": "https://svenkutscher-prog.github.io/diag8watcher/",          "farbe": "#38BDF8", "icon": "puls" },
-    { "name": "missionplanner viewer", "beschreibung": "github.io/missionplanner_viewer", "url": "https://svenkutscher-prog.github.io/missionplanner_viewer/", "farbe": "#A3E635", "icon": "karte" }
+    { "name": "myplan",            "beschreibung": "github.io/myplan",            "url": "https://svenkutscher-prog.github.io/myplan/",            "farbe": "#5B8CFF", "icon": "kalender" },
+    { "name": "energie-dashboard", "beschreibung": "github.io/energie-dashboard", "url": "https://svenkutscher-prog.github.io/energie-dashboard/", "farbe": "#FFB547", "icon": "blitz" },
+    { "name": "Rechner",   "beschreibung": "Angebote",       "url": "https://svenkutscher-prog.github.io/rechner/", "farbe": "#E879F9", "icon": "rechner", "gruppe": "fotoArtisan" },
+    { "name": "Instagram", "beschreibung": "@foto.artisan",  "url": "https://www.instagram.com/foto.artisan/",     "farbe": "#FF7AB6", "icon": "kamera",  "gruppe": "fotoArtisan" },
+    { "name": "Webseite",  "beschreibung": "fotoartisan.de", "url": "https://fotoartisan.de",                      "farbe": "#FFB86B", "icon": "globus",  "gruppe": "fotoArtisan" }
   ]
 }
