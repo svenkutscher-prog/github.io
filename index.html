@@ -71,13 +71,26 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .ej .chip{width:44px;height:44px;border-radius:14px;background:rgba(245,180,40,.22);border:1px solid rgba(255,214,120,.45)}
 .ej-title{display:flex;align-items:center;gap:12px}
 .ej .name{font-size:21px}
-.balls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;position:relative}
-.ball{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font:700 17px "Bricolage Grotesque",sans-serif;background:linear-gradient(160deg,#FFE08A,#F5A524);color:#2A1C00;box-shadow:0 6px 16px -6px #F5A524}
+.balls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;position:relative}
+.ball{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:700 17px "Bricolage Grotesque",sans-serif;background:linear-gradient(160deg,#FFE08A,#F5A524);color:#2A1C00;box-shadow:0 6px 16px -6px #F5A524}
 .ball.e{background:linear-gradient(160deg,#6E8BFF,#3550D6);color:#fff;box-shadow:0 6px 16px -6px #3550D6}
 .vsep{width:1px;height:26px;background:rgba(255,255,255,.3);margin:0 3px}
 .ej-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;position:relative;font-size:14px;color:var(--muted)}
 .ej-foot b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .empty{margin:28px 4px;color:var(--muted)}
+
+/* Gruppen */
+.group{grid-column:span 2;border-radius:30px;padding:14px;display:flex;flex-direction:column;gap:14px}
+.group-head{display:flex;align-items:center;gap:12px;position:relative}
+.group-head .chip{width:44px;height:44px;border-radius:14px}
+.group-head h2{margin:0;font:700 21px/1.15 "Bricolage Grotesque",sans-serif}
+.group-grid{display:grid;gap:8px;position:relative}
+.sub-tile{border-radius:20px;padding:10px;min-height:112px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);position:relative;overflow:hidden}
+.sub-tile:hover{background:rgba(255,255,255,.11)}
+.sub-tile .chip{width:36px;height:36px;border-radius:12px}
+.sub-tile .name{font-size:15px}
+.sub-tile .name,.sub-tile .sub{overflow-wrap:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub-tile .sub{font-size:11px}
 
 /* Dock */
 .dock{position:fixed;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;gap:10px;max-width:528px;margin:0 auto}
@@ -122,7 +135,8 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 (function(){
   // ===== Konfiguration =====
   const GITHUB_USER = 'svenkutscher-prog';
-  const STARTSEITE_REPO = GITHUB_USER + '.github.io';
+  // Repo-Name aus der Adresse: …github.io/<repo>/ oder die Haupt-Seite <user>.github.io
+  const STARTSEITE_REPO = location.pathname.split('/').filter(Boolean)[0] || (GITHUB_USER + '.github.io');
   const EJ_URL = '/eurojackpot-check/';                 // Eurojackpot-App (gleiche Domain)
   const EJ_DATEN = '/eurojackpot-check/ziehungen.json';
 
@@ -134,12 +148,15 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     puls:'M3 12h4l2-6 4 12 2-6h6',
     karte:'M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14',
     ordner:'M3 6h6l2 2h10v11H3z',
-    stern:'M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6-.7z'
+    stern:'M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6-.7z',
+    kamera:'M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    globus:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
+    blende:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM14.3 3.3L9 12M20.6 8.5H10.2M18.9 17.5l-5.6-8.8M9.7 20.7l5.3-9.2M3.4 15.5h10.4M5.1 6.5l5.6 8.8'
   };
   const ARROW='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(242,244,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
   const $=id=>document.getElementById(id);
 
-  let projekte=[], ziehung=null, q='', erstesRender=true;
+  let projekte=[], gruppen=[], ziehung=null, q='', erstesRender=true;
 
   // Kopfzeile
   $('profil').href='https://github.com/'+GITHUB_USER;
@@ -194,29 +211,50 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     return a;
   }
 
-  function kachel(p,delay){
-    const a=el('a','glass tile rise'); a.href=p.url; a.style.animationDelay=delay+'ms';
+  function kachel(p,delay,klein){
+    const a=el('a',klein?'tile sub-tile':'glass tile rise'); a.href=p.url; a.style.animationDelay=delay+'ms';
     const c=hex(p.farbe);
-    const glow=el('div','glow'); Object.assign(glow.style,{width:'170px',height:'170px',right:'-70px',bottom:'-80px',background:`radial-gradient(circle, ${c}66, ${c}00 70%)`}); a.append(glow);
+    if(!klein){const glow=el('div','glow'); Object.assign(glow.style,{width:'170px',height:'170px',right:'-70px',bottom:'-80px',background:`radial-gradient(circle, ${c}66, ${c}00 70%)`}); a.append(glow);}
     const row=el('div','row');
     const chip=el('span','chip'); chip.style.background=c+'33'; chip.style.border='1px solid '+c+'73';
-    chip.innerHTML=svg(ICONS[p.icon]||ICONS.ordner,hell(c),22);
-    row.append(chip); row.insertAdjacentHTML('beforeend',ARROW); a.append(row);
+    chip.innerHTML=svg(ICONS[p.icon]||ICONS.ordner,hell(c),klein?20:22);
+    row.append(chip); row.insertAdjacentHTML('beforeend',klein?ARROW.replace(/18/g,'16'):ARROW); a.append(row);
     const t=el('div'); t.style.position='relative';
     t.append(el('span','name',p.name)); if(p.beschreibung) t.append(el('span','sub',p.beschreibung));
     a.append(t);
     return a;
   }
 
+  function gruppenKarte(name,liste,delay){
+    const meta=gruppen.find(g=>g.name===name)||{}, c=hex(meta.farbe||'#FF7AB6');
+    const sec=el('section','glass group rise'); sec.style.animationDelay=delay+'ms';
+    sec.setAttribute('aria-label',name);
+    const g1=el('div','glow'); Object.assign(g1.style,{width:'260px',height:'260px',left:'-90px',bottom:'-150px',background:`radial-gradient(circle, ${c}80, ${c}00 70%)`});
+    const g2=el('div','glow'); Object.assign(g2.style,{width:'200px',height:'200px',right:'-70px',top:'-100px',background:'radial-gradient(circle, rgba(255,184,107,.45), rgba(255,184,107,0) 70%)'});
+    sec.append(g1,g2);
+    const head=el('div','group-head');
+    const chip=el('span','chip'); chip.style.background=c+'38'; chip.style.border='1px solid '+c+'80';
+    chip.innerHTML=svg(ICONS[meta.icon]||ICONS.ordner,hell(c),22);
+    const t=el('div'); t.append(el('h2',null,name),el('span','sub',liste.length===1?'1 Link':liste.length+' Links'));
+    head.append(chip,t); sec.append(head);
+    const gg=el('div','group-grid'); gg.style.gridTemplateColumns=`repeat(${Math.min(liste.length,3)}, minmax(0, 1fr))`;
+    liste.forEach(p=>gg.append(kachel(p,0,true)));
+    sec.append(gg);
+    return sec;
+  }
+
   function render(){
     const grid=$('grid'); grid.replaceChildren();
     const s=q.trim().toLowerCase(), passt=t=>!s||t.toLowerCase().includes(s);
     const zeigeEj=passt('eurojackpot lotto');
-    const liste=projekte.filter(p=>passt(p.name+' '+(p.beschreibung||'')));
+    const liste=projekte.filter(p=>passt(p.name+' '+(p.beschreibung||'')+' '+(p.gruppe||'')));
+    const einzeln=liste.filter(p=>!p.gruppe);
+    const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
     if(zeigeEj) grid.append(ejKachel(d(200)));
-    liste.forEach((p,i)=>grid.append(kachel(p,d(280+i*70))));
+    einzeln.forEach((p,i)=>grid.append(kachel(p,d(280+i*70))));
+    namen.forEach((n,i)=>grid.append(gruppenKarte(n,liste.filter(p=>p.gruppe===n),d(340+einzeln.length*70+i*90))));
     if(!erstesRender) grid.querySelectorAll('.rise,.pop').forEach(n=>n.style.animation='none');
     const total=liste.length+(zeigeEj?1:0);
     $('count').textContent=total===1?'1 Projekt':total+' Projekte';
@@ -228,7 +266,10 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       fetch('projekte.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()),
       fetch(EJ_DATEN+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject())
     ]);
-    if(p.status==='fulfilled'&&Array.isArray(p.value.projekte)) projekte=p.value.projekte.filter(x=>x&&x.name&&x.url);
+    if(p.status==='fulfilled'&&Array.isArray(p.value.projekte)){
+      projekte=p.value.projekte.filter(x=>x&&x.name&&x.url);
+      gruppen=Array.isArray(p.value.gruppen)?p.value.gruppen.filter(g=>g&&g.name):[];
+    }
     if(z.status==='fulfilled'&&Array.isArray(z.value.draws)&&z.value.draws.length){
       ziehung=[...z.value.draws].sort((a,b)=>b.date.localeCompare(a.date))[0];
     }
