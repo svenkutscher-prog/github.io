@@ -4,10 +4,10 @@
     { "name": "fotoArtisan", "farbe": "#FF7AB6", "icon": "blende" }
   ],
   "projekte": [
-    { "name": "myplan",            "beschreibung": "github.io/myplan",            "url": "https://svenkutscher-prog.github.io/myplan/",            "farbe": "#5B8CFF", "icon": "kalender" },
-    { "name": "energie-dashboard", "beschreibung": "github.io/energie-dashboard", "url": "https://svenkutscher-prog.github.io/energie-dashboard/", "farbe": "#FFB547", "icon": "blitz" },
-    { "name": "Rechner",   "beschreibung": "Angebote",       "url": "https://svenkutscher-prog.github.io/rechner/", "farbe": "#E879F9", "icon": "rechner", "gruppe": "fotoArtisan" },
-    { "name": "Instagram", "beschreibung": "@foto.artisan",  "url": "https://www.instagram.com/foto.artisan/",     "farbe": "#FF7AB6", "icon": "kamera",  "gruppe": "fotoArtisan" },
-    { "name": "Webseite",  "beschreibung": "fotoartisan.de", "url": "https://fotoartisan.de",                      "farbe": "#FFB86B", "icon": "globus",  "gruppe": "fotoArtisan" }
+    { "name": "myplan",            "beschreibung": "Sven Essen",            "url": "https://svenkutscher-prog.github.io/myplan/",            "farbe": "#5B8CFF", "icon": "kalender" },
+    { "name": "WAGAEL DASH", "beschreibung": "", "url": "https://svenkutscher-prog.github.io/energie-dashboard/", "farbe": "#FFB547", "icon": "blitz" },
+    { "name": "Rechner",   "beschreibung": "",       "url": "https://svenkutscher-prog.github.io/rechner/", "farbe": "#E879F9", "icon": "rechner", "gruppe": "fotoArtisan" },
+    { "name": "Instagram", "beschreibung": "",  "url": "https://www.instagram.com/foto.artisan/",     "farbe": "#FF7AB6", "icon": "kamera",  "gruppe": "fotoArtisan" },
+    { "name": "Webseite",  "beschreibung": "", "url": "https://fotoartisan.de",                      "farbe": "#FFB86B", "icon": "globus",  "gruppe": "fotoArtisan" }
   ]
 }
