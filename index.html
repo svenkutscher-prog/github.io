@@ -82,28 +82,47 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 
 /* Diesel-Kachel */
 @font-face{font-family:DSEG7;src:url(https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2) format("woff2");font-display:swap}
-.ds{grid-column:span 2;border-radius:30px;padding:20px;gap:16px;min-height:0;cursor:pointer}
+.ds{grid-column:span 2;border-radius:30px;padding:18px;gap:14px;min-height:0;cursor:pointer}
 .ds .chip{width:44px;height:44px;border-radius:14px;background:rgba(255,92,80,.2);border:1px solid rgba(255,150,130,.45)}
 .ds .name{font-size:21px}
-.ds-refresh{display:grid;place-items:center}
-.ds.laedt .ds-refresh svg{animation:dsdreh 1s linear infinite}
+.ds-btn{background:transparent;border:0;color:inherit;padding:6px;margin:-6px;border-radius:12px;cursor:pointer;display:grid;place-items:center}
+.ds-btn:focus-visible,.ds-link:focus-visible,.ds-sheet button:focus-visible{outline:3px solid #9DB4FF;outline-offset:2px}
+.ds.laedt .ds-btn svg{animation:dsdreh 1s linear infinite}
 @keyframes dsdreh{to{transform:rotate(360deg)}}
-.ds-main{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;position:relative}
-.ds-station{font-size:14px;color:var(--muted);min-width:0}
-.ds-station b{display:block;color:var(--text);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ds-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#4CD98A;margin-right:6px;vertical-align:1px;animation:dsblink 1.8s ease-in-out infinite}
+.ds-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;position:relative}
+.ds-col{border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);padding:10px 8px;min-width:0;display:flex;flex-direction:column;gap:2px;transition:border-color .4s,background .4s}
+.ds-col.best{border:1.5px solid #4CD98A;background:rgba(76,217,138,.09)}
+.ds-label{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-col.best .ds-label{color:#4CD98A}
+.ds-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4CD98A;margin-right:5px;vertical-align:1px;animation:dsblink 1.8s ease-in-out infinite}
+.ds-dot.zu{background:#FF6B5E;animation:none}
 @keyframes dsblink{50%{opacity:.3}}
-.lcd{font:700 42px/1 DSEG7,"Bricolage Grotesque",monospace;letter-spacing:1px;color:#fff;text-shadow:1px 1px 1px #E24B4A;white-space:nowrap;flex:none}
+.lcd{font:700 19px/1.1 DSEG7,"Bricolage Grotesque",monospace;letter-spacing:.5px;color:#fff;text-shadow:1px 1px 1px #E24B4A;white-space:nowrap;margin:5px 0 3px}
 .lcd sup{font-size:.5em;vertical-align:top;position:relative;top:.05em;margin-left:1px}
-.lcd .eur{font:600 .42em Geist,sans-serif;margin-left:5px;text-shadow:none}
-.ds-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;position:relative}
-.ds-slot{border-radius:18px;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);min-width:0}
-.ds-slot small{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-.ds-slot .lcd{font-size:22px}
-.ds-slot .ort{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
-.ds-leer{font:700 22px "Bricolage Grotesque",sans-serif;color:var(--muted)}
+.ds-hr{height:1px;background:rgba(255,255,255,.14);margin:3px 0}
+.ds-mini{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.ds-mini b{color:var(--text);font-weight:500}
+.ds-leer{font:700 19px/1.1 "Bricolage Grotesque",sans-serif;color:var(--muted);margin:5px 0 3px}
 .ds-fehler{color:#FF8A7E}
-@media (prefers-reduced-motion: reduce){.ds-dot,.ds.laedt .ds-refresh svg{animation:none}}
+.ds-link{background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline;padding:0;cursor:pointer}
+/* Auswahl der Tankstellen */
+.ds-overlay{position:fixed;inset:0;z-index:20;background:rgba(5,7,25,.55);display:flex;align-items:flex-end;justify-content:center;padding:0 10px calc(10px + env(safe-area-inset-bottom,0px))}
+.ds-sheet{width:100%;max-width:540px;max-height:82vh;border-radius:28px;padding:16px;display:flex;flex-direction:column;gap:10px;background-color:rgba(27,33,80,.88);animation:rise .5s cubic-bezier(.2,.9,.25,1.1) both}
+.ds-sheet h2{margin:0;font:700 20px "Bricolage Grotesque",sans-serif}
+.ds-seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;position:relative}
+.ds-sheet button{font:inherit;color:inherit;cursor:pointer}
+.ds-seg button{border-radius:14px;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);text-align:left;min-width:0}
+.ds-seg button small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-seg button[aria-pressed="true"]{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.45)}
+.ds-sheet input{width:100%;font:400 16px Geist,sans-serif;color:var(--text);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;outline:none;position:relative}
+.ds-liste{list-style:none;margin:0;padding:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:6px;position:relative}
+.ds-liste button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.ds-liste button.gewaehlt{border-color:#4CD98A;background:rgba(76,217,138,.12)}
+.ds-liste small{display:block;font-size:12px;color:var(--muted)}
+.ds-liste .preis{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.ds-zu{background:none;border:0;padding:6px;margin:-6px;border-radius:12px;display:grid;place-items:center}
+@media (prefers-reduced-motion: reduce){.ds-dot,.ds.laedt .ds-btn svg,.ds-sheet{animation:none}}
 
 /* Gruppen */
 .group{grid-column:span 2;border-radius:30px;padding:14px;display:flex;flex-direction:column;gap:14px}
@@ -166,11 +185,12 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     cache: 'nouriDataCache_v1',
     ziel: '#einkaufen'
   };
-  // Diesel: günstigster offener Preis im Umkreis (Mittelpunkt Linnich/Aachen), Tankerkönig-API
+  // Diesel: zwei feste Tankstellen + günstigste im Umkreis (Tankerkönig-API)
   const DIESEL = {
     key: 'c5e49ed8-d412-d598-7f86-e87609a12d6e',
-    lat: 50.878, lng: 6.177, rad: 15,                   // Radius in km (max. 25)
-    cache: 'diesel_linnich_v1',
+    lat: 50.878, lng: 6.177, rad: 15,                   // Suchgebiet Linnich/Aachen, Radius in km (max. 25)
+    vorgabe: [{marke:'shell',ort:'linnich'},{marke:'star',ort:'aldenhoven'}], // bis du selbst auswählst
+    cache: 'diesel_linnich_v2',
     tage: 14,                                           // so viele Tage merken
     intervall: 36e5                                     // automatisch stündlich, solange die Seite offen ist
   };
@@ -248,80 +268,99 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   }
 
   // ===== Diesel-Kachel =====
-  let diesel={aktuell:null,tage:{}}, dieselLaedt=false, dieselFehler='', dieselZuletzt=0;
-  try{const c=JSON.parse(localStorage.getItem(DIESEL.cache)||'null');if(c&&c.tage)diesel=c}catch(e){}
+  // Spalte 1 und 2: feste Tankstellen (Auswahl auf diesem Gerät), Spalte 3: günstigste offene im Umkreis
+  const DS_SPALTEN=['s1','s2','best'];
+  let diesel={fest:[null,null],spalten:{s1:{},s2:{},best:{}},stationen:[]}, dieselLaedt=false, dieselFehler='', dieselZuletzt=0;
+  try{const c=JSON.parse(localStorage.getItem(DIESEL.cache)||'null');if(c&&c.spalten)diesel=Object.assign(diesel,c)}catch(e){}
   const tagIso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const preisHtml=p=>{const s=p.toFixed(3);return s.slice(0,-1)+'<sup>'+s.slice(-1)+'</sup>'};
+  const preisText=p=>typeof p==='number'?p.toFixed(3).replace('.',','):'–';
   const ortSchoen=o=>String(o||'').trim().toLowerCase().replace(/(^|[\s-])\S/g,c=>c.toUpperCase());
   const ruhig=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dieselSpeichern=()=>{try{localStorage.setItem(DIESEL.cache,JSON.stringify(diesel))}catch(e){}};
 
   function dieselKachel(delay){
-    const a=el('a','glass tile ds rise'); a.href='#diesel'; a.id='diesel'; a.style.animationDelay=delay+'ms';
-    a.setAttribute('aria-label','Diesel-Preis jetzt aktualisieren');
+    const a=el('div','glass tile ds rise'); a.id='diesel'; a.style.animationDelay=delay+'ms';
     const glow=el('div','glow'); Object.assign(glow.style,{width:'240px',height:'240px',left:'-80px',bottom:'-140px',background:'radial-gradient(circle, rgba(255,92,80,.5), rgba(255,92,80,0) 70%)'}); a.append(glow);
     const row=el('div','row'); row.style.alignItems='center';
     const t=el('div','ej-title');
     const chip=el('span','chip'); chip.innerHTML=svg(ICONS.zapfsaeule,'#FFB3A6',22);
-    const txt=el('div'); txt.append(el('span','name','Diesel'),el('span','sub','Linnich Richtung Aachen'));
+    const txt=el('div'); txt.append(el('span','name','Diesel'),el('span','sub','Linnich, Aldenhoven und Umkreis'));
     t.append(chip,txt); row.append(t);
-    const r=el('span','ds-refresh'); r.innerHTML=svg(ICONS.neuladen,'rgba(242,244,255,.8)',20); row.append(r);
+    const r=el('button','ds-btn'); r.type='button'; r.setAttribute('aria-label','Diesel-Preise aktualisieren');
+    r.innerHTML=svg(ICONS.neuladen,'rgba(242,244,255,.8)',20); row.append(r);
     a.append(row);
-    const main=el('div','ds-main');
-    const st=el('div','ds-station'); st.id='ds-station';
-    const preis=el('div','lcd'); preis.id='ds-preis';
-    main.append(st,preis); a.append(main);
-    const slots=el('div','ds-slots');
-    const v=el('div','ds-slot'); v.id='ds-v';
-    const n=el('div','ds-slot'); n.id='ds-n';
-    slots.append(v,n); a.append(slots);
+    const cols=el('div','ds-cols');
+    DS_SPALTEN.forEach(k=>{const c=el('div','ds-col');c.id='ds-'+k;cols.append(c)});
+    a.append(cols);
     const foot=el('div','ej-foot');
     const stand=el('span'); stand.id='ds-stand';
-    foot.append(stand,el('span',null,'Tippen zum Aktualisieren')); a.append(foot);
-    a.addEventListener('click',e=>{e.preventDefault();ladeDiesel(true)});
+    const wahl=el('button','ds-link','Tankstellen wählen'); wahl.type='button';
+    wahl.addEventListener('click',e=>{e.stopPropagation();dieselAuswahl()});
+    foot.append(stand,wahl); a.append(foot);
+    a.addEventListener('click',()=>ladeDiesel(true)); // Tippen auf die Kachel = aktualisieren
     return a;
   }
 
   function dieselRollen(ziel,wert){ // Preis zählt wie eine Zapfsäule auf den Wert
-    if(ruhig()){ziel.innerHTML=preisHtml(wert)+'<span class="eur">€</span>';return}
+    if(ruhig()){ziel.innerHTML=preisHtml(wert);return}
     const t0=performance.now(), start=wert+0.25;
     (function f(t){
       const k=Math.min((t-t0)/1000,1), e=1-Math.pow(1-k,3);
-      ziel.innerHTML=preisHtml(start+(wert-start)*e)+'<span class="eur">€</span>';
+      ziel.innerHTML=preisHtml(start+(wert-start)*e);
       if(k<1) requestAnimationFrame(f);
     })(t0);
   }
 
-  function dieselSlot(box,label,e,animieren){
-    box.replaceChildren(el('small',null,e?`${label} · ${e.zeit} Uhr`:label));
-    if(e){
+  function dieselSpalte(key,animieren,minPreis){
+    const box=$('ds-'+key); if(!box) return;
+    const sp=diesel.spalten[key]||{}, a=sp.aktuell, heute=(sp.tage||{})[tagIso(new Date())]||{}, i=DS_SPALTEN.indexOf(key);
+    const label=key==='best'?'Günstigste':(a&&a.ort)||ortSchoen(DIESEL.vorgabe[i]&&DIESEL.vorgabe[i].ort);
+    box.replaceChildren(el('span','ds-label',label));
+    const istHeute=a&&a.datum===tagIso(new Date());
+    box.classList.toggle('best',!!(a&&a.offen&&istHeute&&typeof a.preis==='number'&&a.preis===minPreis));
+    if(a){
+      const n=el('span','ds-name'); const d=el('span','ds-dot'+(a.offen?'':' zu')); d.setAttribute('aria-hidden','true');
+      n.append(d,a.name); n.title=`${a.name}, ${a.strasse}, ${a.ort}`; box.append(n);
+    }else box.append(el('span','ds-name',sp.fehlt?'nicht gefunden':(dieselLaedt?'lädt …':'–')));
+    if(a&&typeof a.preis==='number'){
       const p=el('div','lcd'); box.append(p);
-      if(animieren) dieselRollen(p,e.preis); else p.innerHTML=preisHtml(e.preis)+'<span class="eur">€</span>';
-      box.append(el('span','ort',`${e.name}, ${e.ort}`));
-    }else box.append(el('span','ds-leer','–'));
+      if(animieren) dieselRollen(p,a.preis); else p.innerHTML=preisHtml(a.preis);
+    }else box.append(el('div','ds-leer','–'));
+    box.append(el('div','ds-hr'));
+    const v=el('span','ds-mini'); v.innerHTML=`vor 12 <b>${preisText(heute.vor12&&heute.vor12.preis)}</b>`;
+    const nn=el('span','ds-mini'); nn.innerHTML=`nach 12 <b>${preisText(heute.nach12&&heute.nach12.preis)}</b>`;
+    box.append(v,nn);
+    if(key==='best'&&a) box.append(el('span','ds-mini',a.ort));
   }
 
   function dieselZeigen(animieren){
     const k=$('diesel'); if(!k) return;
     k.classList.toggle('laedt',dieselLaedt);
-    const a=diesel.aktuell, heute=diesel.tage[tagIso(new Date())]||{};
-    const st=$('ds-station'), p=$('ds-preis');
-    if(a){
-      st.replaceChildren(el('b',null,a.name));
-      const z=el('span'); if(a.datum===tagIso(new Date())){const d=el('span','ds-dot');d.setAttribute('aria-hidden','true');z.append(d)}
-      z.append(`${a.ort}${a.km!=null?' · '+String(a.km).replace('.',',')+' km':''}`); st.append(z);
-      if(animieren) dieselRollen(p,a.preis); else p.innerHTML=preisHtml(a.preis)+'<span class="eur">€</span>';
-    }else{
-      st.replaceChildren(el('span',null,dieselLaedt?'Preis wird geladen …':'Noch kein Preis'));
-      p.innerHTML='<span class="ds-leer">–</span>';
-    }
-    dieselSlot($('ds-v'),'Vor 12 Uhr',heute.vor12,animieren);
-    dieselSlot($('ds-n'),'Nach 12 Uhr',heute.nach12,animieren);
-    const s=$('ds-stand');
+    const heute=tagIso(new Date());
+    const preise=DS_SPALTEN.map(s=>diesel.spalten[s]&&diesel.spalten[s].aktuell).filter(a=>a&&a.offen&&a.datum===heute&&typeof a.preis==='number').map(a=>a.preis);
+    const minPreis=preise.length?Math.min(...preise):null;
+    DS_SPALTEN.forEach(s=>dieselSpalte(s,animieren,minPreis));
+    const s=$('ds-stand'), a=diesel.spalten.best&&diesel.spalten.best.aktuell;
     s.className=dieselFehler?'ds-fehler':'';
     if(dieselFehler) s.textContent=dieselFehler;
     else if(dieselLaedt) s.textContent='Wird aktualisiert …';
     else if(a) s.textContent=`Stand ${new Date(a.datum+'T12:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}, ${a.zeit} Uhr`;
     else s.textContent='';
+  }
+
+  function dieselMerken(key,st,now){
+    const sp=diesel.spalten[key]||(diesel.spalten[key]={}), tag=tagIso(now);
+    const alt=sp.aktuell&&sp.aktuell.id===st.id?sp.aktuell:null;
+    const e={...st,zeit:now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),datum:tag};
+    if(e.preis==null&&alt) e.preis=alt.preis;              // geschlossen: letzten bekannten Preis behalten
+    sp.aktuell=e; sp.fehlt=false;
+    if(st.offen&&typeof st.preis==='number'){
+      sp.tage=sp.tage||{};
+      const t=sp.tage[tag]||(sp.tage[tag]={}), slot=now.getHours()<12?'vor12':'nach12';
+      if(!t[slot]||st.preis<t[slot].preis) t[slot]={preis:st.preis,zeit:e.zeit,name:st.name,ort:st.ort}; // günstigster im Zeitfenster
+      Object.keys(sp.tage).sort().slice(0,-DIESEL.tage).forEach(k=>delete sp.tage[k]);
+    }
   }
 
   async function ladeDiesel(manuell){
@@ -330,23 +369,89 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     dieselLaedt=true; dieselFehler=''; dieselZeigen(false);
     let ok=false;
     try{
-      const u=`https://creativecommons.tankerkoenig.de/json/list.php?lat=${DIESEL.lat}&lng=${DIESEL.lng}&rad=${DIESEL.rad}&sort=price&type=diesel&apikey=${DIESEL.key}`;
+      const u=`https://creativecommons.tankerkoenig.de/json/list.php?lat=${DIESEL.lat}&lng=${DIESEL.lng}&rad=${DIESEL.rad}&sort=dist&type=diesel&apikey=${DIESEL.key}`;
       const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
       const j=await r.json(); if(!j.ok) throw new Error(j.message||'API-Fehler');
-      const offen=(j.stations||[]).filter(s=>s.isOpen&&typeof s.price==='number'&&s.price>0).sort((x,y)=>x.price-y.price);
-      if(!offen.length) throw new Error('gerade keine Tankstelle geöffnet');
-      const s=offen[0], now=new Date(), tag=tagIso(now);
-      const e={preis:s.price,zeit:now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),name:(s.brand||s.name||'Tankstelle').trim(),ort:ortSchoen(s.place),km:s.dist,datum:tag};
-      const slot=now.getHours()<12?'vor12':'nach12';
-      const t=diesel.tage[tag]||(diesel.tage[tag]={});
-      if(!t[slot]||e.preis<t[slot].preis) t[slot]=e;      // günstigster Preis im Zeitfenster
-      Object.keys(diesel.tage).sort().slice(0,-DIESEL.tage).forEach(k=>delete diesel.tage[k]);
-      diesel.aktuell=e; dieselZuletzt=Date.now(); ok=true;
-      try{localStorage.setItem(DIESEL.cache,JSON.stringify(diesel))}catch(x){}
+      const alle=(j.stations||[]).map(s=>({id:s.id,name:String(s.brand||s.name||'Tankstelle').trim(),
+        strasse:`${s.street||''} ${s.houseNumber||''}`.trim(),ort:ortSchoen(s.place),km:s.dist,
+        preis:typeof s.price==='number'&&s.price>0?s.price:null,offen:!!s.isOpen}));
+      diesel.stationen=alle;
+      // Vorgabe (Shell Linnich, Star Aldenhoven), solange noch nichts ausgewählt ist
+      DIESEL.vorgabe.forEach((v,i)=>{
+        if(diesel.fest[i]) return;
+        const t=alle.find(s=>s.name.toLowerCase().includes(v.marke)&&s.ort.toLowerCase().includes(v.ort));
+        if(t) diesel.fest[i]=t.id;
+      });
+      const now=new Date();
+      diesel.fest.forEach((id,i)=>{
+        const st=id&&alle.find(s=>s.id===id), key=DS_SPALTEN[i];
+        if(st) dieselMerken(key,st,now); else (diesel.spalten[key]=diesel.spalten[key]||{}).fehlt=true;
+      });
+      const offen=alle.filter(s=>s.offen&&s.preis!=null).sort((x,y)=>x.preis-y.preis);
+      if(offen.length) dieselMerken('best',offen[0],now);
+      else dieselFehler='Gerade hat keine Tankstelle im Umkreis geöffnet';
+      dieselZuletzt=Date.now(); ok=true; dieselSpeichern();
     }catch(err){
       dieselFehler='Abruf fehlgeschlagen: '+(err&&err.message||'Netzwerkfehler');
     }
     dieselLaedt=false; dieselZeigen(ok);
+  }
+
+  // Auswahl der beiden festen Tankstellen
+  function dieselAuswahl(){
+    let spalte=0;
+    const ov=el('div','ds-overlay'); ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true'); ov.setAttribute('aria-label','Tankstellen wählen');
+    const sh=el('div','glass ds-sheet');
+    const kopfz=el('div','row'); kopfz.style.alignItems='center';
+    const zu=el('button','ds-zu'); zu.type='button'; zu.setAttribute('aria-label','Schließen'); zu.innerHTML=svg('M6 6l12 12M18 6L6 18','#F2F4FF',22);
+    kopfz.append(el('h2',null,'Tankstellen wählen'),zu);
+    const seg=el('div','ds-seg');
+    const such=el('input'); such.type='search'; such.placeholder='Ort, Marke oder Straße'; such.setAttribute('aria-label','Tankstelle suchen');
+    const liste=el('ul','ds-liste');
+    sh.append(kopfz,seg,such,liste); ov.append(sh); document.body.append(ov);
+    document.body.style.overflow='hidden';
+
+    function schliessen(){ov.remove();document.body.style.overflow='';document.removeEventListener('keydown',taste);dieselZeigen(false)}
+    function taste(e){if(e.key==='Escape')schliessen()}
+    document.addEventListener('keydown',taste);
+    zu.addEventListener('click',schliessen);
+    ov.addEventListener('click',e=>{if(e.target===ov)schliessen()});
+
+    function segZeigen(){
+      seg.replaceChildren();
+      [0,1].forEach(i=>{
+        const st=diesel.stationen.find(s=>s.id===diesel.fest[i]);
+        const b=el('button'); b.type='button'; b.setAttribute('aria-pressed',String(i===spalte));
+        b.append(`Spalte ${i+1}`,el('small',null,st?`${st.name}, ${st.ort}`:'nicht gewählt'));
+        b.addEventListener('click',()=>{spalte=i;such.value=st?st.ort:ortSchoen(DIESEL.vorgabe[i].ort);segZeigen();listeZeigen()});
+        seg.append(b);
+      });
+    }
+    function listeZeigen(){
+      const s=such.value.trim().toLowerCase();
+      const treffer=diesel.stationen.filter(st=>!s||(st.name+' '+st.ort+' '+st.strasse).toLowerCase().includes(s));
+      liste.replaceChildren();
+      if(!diesel.stationen.length){liste.append(el('li','sub',dieselLaedt?'Tankstellen werden geladen …':'Keine Tankstellen geladen. Später erneut versuchen.'));return}
+      if(!treffer.length){liste.append(el('li','sub','Keine Tankstelle gefunden. Suchbegriff ändern.'));return}
+      treffer.forEach(st=>{
+        const li=el('li'), b=el('button',st.id===diesel.fest[spalte]?'gewaehlt':''); b.type='button';
+        const links=el('div'); links.append(el('span',null,st.name),el('small',null,`${st.strasse}, ${st.ort} · ${String(st.km).replace('.',',')} km`));
+        b.append(links,el('span','preis',st.preis!=null?preisText(st.preis)+' €':(st.offen?'–':'geschlossen')));
+        b.addEventListener('click',()=>{
+          if(diesel.fest[spalte]!==st.id){diesel.fest[spalte]=st.id;diesel.spalten[DS_SPALTEN[spalte]]={}} // neue Tankstelle, alte Werte weg
+          const sp=diesel.spalten[DS_SPALTEN[spalte]]; if(!sp.aktuell) dieselMerken(DS_SPALTEN[spalte],st,new Date());
+          dieselSpeichern();
+          if(spalte===0){spalte=1;const st2=diesel.stationen.find(x=>x.id===diesel.fest[1]);such.value=st2?st2.ort:ortSchoen(DIESEL.vorgabe[1].ort);segZeigen();listeZeigen()}
+          else schliessen();
+        });
+        li.append(b); liste.append(li);
+      });
+    }
+    such.addEventListener('input',listeZeigen);
+    const st0=diesel.stationen.find(s=>s.id===diesel.fest[0]);
+    such.value=st0?st0.ort:ortSchoen(DIESEL.vorgabe[0].ort);
+    segZeigen(); listeZeigen();
+    if(!diesel.stationen.length) ladeDiesel(true).then(()=>{if(ov.isConnected){segZeigen();listeZeigen()}});
   }
 
   function kachel(p,delay,klein){
