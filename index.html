@@ -80,6 +80,31 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .empty{margin:28px 4px;color:var(--muted)}
 .badge{position:absolute;top:-8px;right:-10px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF3B30;color:#fff;font:700 13px/22px Geist,-apple-system,sans-serif;text-align:center;box-shadow:0 0 0 2px rgba(15,19,48,.85),0 6px 14px -4px rgba(255,59,48,.8);animation:pop .6s cubic-bezier(.2,1.4,.3,1) both}
 
+/* Diesel-Kachel */
+@font-face{font-family:DSEG7;src:url(https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2) format("woff2");font-display:swap}
+.ds{grid-column:span 2;border-radius:30px;padding:20px;gap:16px;min-height:0;cursor:pointer}
+.ds .chip{width:44px;height:44px;border-radius:14px;background:rgba(255,92,80,.2);border:1px solid rgba(255,150,130,.45)}
+.ds .name{font-size:21px}
+.ds-refresh{display:grid;place-items:center}
+.ds.laedt .ds-refresh svg{animation:dsdreh 1s linear infinite}
+@keyframes dsdreh{to{transform:rotate(360deg)}}
+.ds-main{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;position:relative}
+.ds-station{font-size:14px;color:var(--muted);min-width:0}
+.ds-station b{display:block;color:var(--text);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#4CD98A;margin-right:6px;vertical-align:1px;animation:dsblink 1.8s ease-in-out infinite}
+@keyframes dsblink{50%{opacity:.3}}
+.lcd{font:700 42px/1 DSEG7,"Bricolage Grotesque",monospace;letter-spacing:1px;color:#fff;text-shadow:1px 1px 1px #E24B4A;white-space:nowrap;flex:none}
+.lcd sup{font-size:.5em;vertical-align:top;position:relative;top:.05em;margin-left:1px}
+.lcd .eur{font:600 .42em Geist,sans-serif;margin-left:5px;text-shadow:none}
+.ds-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;position:relative}
+.ds-slot{border-radius:18px;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);min-width:0}
+.ds-slot small{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.ds-slot .lcd{font-size:22px}
+.ds-slot .ort{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
+.ds-leer{font:700 22px "Bricolage Grotesque",sans-serif;color:var(--muted)}
+.ds-fehler{color:#FF8A7E}
+@media (prefers-reduced-motion: reduce){.ds-dot,.ds.laedt .ds-refresh svg{animation:none}}
+
 /* Gruppen */
 .group{grid-column:span 2;border-radius:30px;padding:14px;display:flex;flex-direction:column;gap:14px}
 .group-head{display:flex;align-items:center;gap:12px;position:relative}
@@ -141,6 +166,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     cache: 'nouriDataCache_v1',
     ziel: '#einkaufen'
   };
+  // Diesel: günstigster offener Preis im Umkreis (Mittelpunkt Linnich/Aachen), Tankerkönig-API
+  const DIESEL = {
+    key: 'c5e49ed8-d412-d598-7f86-e87609a12d6e',
+    lat: 50.878, lng: 6.177, rad: 15,                   // Radius in km (max. 25)
+    cache: 'diesel_linnich_v1',
+    tage: 14,                                           // so viele Tage merken
+    intervall: 36e5                                     // automatisch stündlich, solange die Seite offen ist
+  };
 
   const ICONS = {
     kalender:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
@@ -153,7 +186,9 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     stern:'M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6-.7z',
     kamera:'M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
     globus:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
-    blende:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM14.3 3.3L9 12M20.6 8.5H10.2M18.9 17.5l-5.6-8.8M9.7 20.7l5.3-9.2M3.4 15.5h10.4M5.1 6.5l5.6 8.8'
+    blende:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM14.3 3.3L9 12M20.6 8.5H10.2M18.9 17.5l-5.6-8.8M9.7 20.7l5.3-9.2M3.4 15.5h10.4M5.1 6.5l5.6 8.8',
+    zapfsaeule:'M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M7 8h4M14 10h2a2 2 0 0 1 2 2v4.5a1.5 1.5 0 0 0 3 0V8l-3-3',
+    neuladen:'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7'
   };
   const ARROW='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(242,244,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
   const $=id=>document.getElementById(id);
@@ -212,6 +247,108 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     return a;
   }
 
+  // ===== Diesel-Kachel =====
+  let diesel={aktuell:null,tage:{}}, dieselLaedt=false, dieselFehler='', dieselZuletzt=0;
+  try{const c=JSON.parse(localStorage.getItem(DIESEL.cache)||'null');if(c&&c.tage)diesel=c}catch(e){}
+  const tagIso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const preisHtml=p=>{const s=p.toFixed(3);return s.slice(0,-1)+'<sup>'+s.slice(-1)+'</sup>'};
+  const ortSchoen=o=>String(o||'').trim().toLowerCase().replace(/(^|[\s-])\S/g,c=>c.toUpperCase());
+  const ruhig=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function dieselKachel(delay){
+    const a=el('a','glass tile ds rise'); a.href='#diesel'; a.id='diesel'; a.style.animationDelay=delay+'ms';
+    a.setAttribute('aria-label','Diesel-Preis jetzt aktualisieren');
+    const glow=el('div','glow'); Object.assign(glow.style,{width:'240px',height:'240px',left:'-80px',bottom:'-140px',background:'radial-gradient(circle, rgba(255,92,80,.5), rgba(255,92,80,0) 70%)'}); a.append(glow);
+    const row=el('div','row'); row.style.alignItems='center';
+    const t=el('div','ej-title');
+    const chip=el('span','chip'); chip.innerHTML=svg(ICONS.zapfsaeule,'#FFB3A6',22);
+    const txt=el('div'); txt.append(el('span','name','Diesel'),el('span','sub','Linnich Richtung Aachen'));
+    t.append(chip,txt); row.append(t);
+    const r=el('span','ds-refresh'); r.innerHTML=svg(ICONS.neuladen,'rgba(242,244,255,.8)',20); row.append(r);
+    a.append(row);
+    const main=el('div','ds-main');
+    const st=el('div','ds-station'); st.id='ds-station';
+    const preis=el('div','lcd'); preis.id='ds-preis';
+    main.append(st,preis); a.append(main);
+    const slots=el('div','ds-slots');
+    const v=el('div','ds-slot'); v.id='ds-v';
+    const n=el('div','ds-slot'); n.id='ds-n';
+    slots.append(v,n); a.append(slots);
+    const foot=el('div','ej-foot');
+    const stand=el('span'); stand.id='ds-stand';
+    foot.append(stand,el('span',null,'Tippen zum Aktualisieren')); a.append(foot);
+    a.addEventListener('click',e=>{e.preventDefault();ladeDiesel(true)});
+    return a;
+  }
+
+  function dieselRollen(ziel,wert){ // Preis zählt wie eine Zapfsäule auf den Wert
+    if(ruhig()){ziel.innerHTML=preisHtml(wert)+'<span class="eur">€</span>';return}
+    const t0=performance.now(), start=wert+0.25;
+    (function f(t){
+      const k=Math.min((t-t0)/1000,1), e=1-Math.pow(1-k,3);
+      ziel.innerHTML=preisHtml(start+(wert-start)*e)+'<span class="eur">€</span>';
+      if(k<1) requestAnimationFrame(f);
+    })(t0);
+  }
+
+  function dieselSlot(box,label,e,animieren){
+    box.replaceChildren(el('small',null,e?`${label} · ${e.zeit} Uhr`:label));
+    if(e){
+      const p=el('div','lcd'); box.append(p);
+      if(animieren) dieselRollen(p,e.preis); else p.innerHTML=preisHtml(e.preis)+'<span class="eur">€</span>';
+      box.append(el('span','ort',`${e.name}, ${e.ort}`));
+    }else box.append(el('span','ds-leer','–'));
+  }
+
+  function dieselZeigen(animieren){
+    const k=$('diesel'); if(!k) return;
+    k.classList.toggle('laedt',dieselLaedt);
+    const a=diesel.aktuell, heute=diesel.tage[tagIso(new Date())]||{};
+    const st=$('ds-station'), p=$('ds-preis');
+    if(a){
+      st.replaceChildren(el('b',null,a.name));
+      const z=el('span'); if(a.datum===tagIso(new Date())){const d=el('span','ds-dot');d.setAttribute('aria-hidden','true');z.append(d)}
+      z.append(`${a.ort}${a.km!=null?' · '+String(a.km).replace('.',',')+' km':''}`); st.append(z);
+      if(animieren) dieselRollen(p,a.preis); else p.innerHTML=preisHtml(a.preis)+'<span class="eur">€</span>';
+    }else{
+      st.replaceChildren(el('span',null,dieselLaedt?'Preis wird geladen …':'Noch kein Preis'));
+      p.innerHTML='<span class="ds-leer">–</span>';
+    }
+    dieselSlot($('ds-v'),'Vor 12 Uhr',heute.vor12,animieren);
+    dieselSlot($('ds-n'),'Nach 12 Uhr',heute.nach12,animieren);
+    const s=$('ds-stand');
+    s.className=dieselFehler?'ds-fehler':'';
+    if(dieselFehler) s.textContent=dieselFehler;
+    else if(dieselLaedt) s.textContent='Wird aktualisiert …';
+    else if(a) s.textContent=`Stand ${new Date(a.datum+'T12:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}, ${a.zeit} Uhr`;
+    else s.textContent='';
+  }
+
+  async function ladeDiesel(manuell){
+    if(dieselLaedt) return;
+    if(!manuell&&Date.now()-dieselZuletzt<10*6e4) return; // automatisch höchstens alle 10 Min
+    dieselLaedt=true; dieselFehler=''; dieselZeigen(false);
+    let ok=false;
+    try{
+      const u=`https://creativecommons.tankerkoenig.de/json/list.php?lat=${DIESEL.lat}&lng=${DIESEL.lng}&rad=${DIESEL.rad}&sort=price&type=diesel&apikey=${DIESEL.key}`;
+      const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
+      const j=await r.json(); if(!j.ok) throw new Error(j.message||'API-Fehler');
+      const offen=(j.stations||[]).filter(s=>s.isOpen&&typeof s.price==='number'&&s.price>0).sort((x,y)=>x.price-y.price);
+      if(!offen.length) throw new Error('gerade keine Tankstelle geöffnet');
+      const s=offen[0], now=new Date(), tag=tagIso(now);
+      const e={preis:s.price,zeit:now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),name:(s.brand||s.name||'Tankstelle').trim(),ort:ortSchoen(s.place),km:s.dist,datum:tag};
+      const slot=now.getHours()<12?'vor12':'nach12';
+      const t=diesel.tage[tag]||(diesel.tage[tag]={});
+      if(!t[slot]||e.preis<t[slot].preis) t[slot]=e;      // günstigster Preis im Zeitfenster
+      Object.keys(diesel.tage).sort().slice(0,-DIESEL.tage).forEach(k=>delete diesel.tage[k]);
+      diesel.aktuell=e; dieselZuletzt=Date.now(); ok=true;
+      try{localStorage.setItem(DIESEL.cache,JSON.stringify(diesel))}catch(x){}
+    }catch(err){
+      dieselFehler='Abruf fehlgeschlagen: '+(err&&err.message||'Netzwerkfehler');
+    }
+    dieselLaedt=false; dieselZeigen(ok);
+  }
+
   function kachel(p,delay,klein){
     const a=el('a',klein?'tile sub-tile':'glass tile rise'); a.href=p.url; a.style.animationDelay=delay+'ms';
     const c=hex(p.farbe);
@@ -250,16 +387,18 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const grid=$('grid'); grid.replaceChildren();
     const s=q.trim().toLowerCase(), passt=t=>!s||t.toLowerCase().includes(s);
     const zeigeEj=passt('eurojackpot lotto');
+    const zeigeDs=passt('diesel tanken sprit preis');
     const liste=projekte.filter(p=>passt(p.name+' '+(p.beschreibung||'')+' '+(p.gruppe||'')));
     const einzeln=liste.filter(p=>!p.gruppe);
     const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
     if(zeigeEj) grid.append(ejKachel(d(200)));
+    if(zeigeDs){grid.append(dieselKachel(d(240)));dieselZeigen(erstesRender&&!!diesel.aktuell)}
     einzeln.forEach((p,i)=>grid.append(kachel(p,d(280+i*70))));
     namen.forEach((n,i)=>grid.append(gruppenKarte(n,liste.filter(p=>p.gruppe===n),d(340+einzeln.length*70+i*90))));
     if(!erstesRender) grid.querySelectorAll('.rise,.pop').forEach(n=>n.style.animation='none');
-    const total=liste.length+(zeigeEj?1:0);
+    const total=liste.length+(zeigeEj?1:0)+(zeigeDs?1:0);
     $('count').textContent=total===1?'1 Projekt':total+' Projekte';
     $('empty').hidden=total>0;
   }
@@ -334,8 +473,9 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   }
 
   setInterval(kopf,60000);
-  kopf(); laden(); ladeEnergie(); ladeEinkauf();
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie()}});
+  setInterval(()=>ladeDiesel(false),DIESEL.intervall);
+  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false)}});
 })();
 </script>
 </body>
