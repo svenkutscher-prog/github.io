@@ -171,6 +171,9 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .ig-day.heute i{border:1.5px solid #fff}
 .ig-day.done i{background:rgba(94,207,160,.25);border-color:rgba(94,207,160,.5);color:#8FE8C2}
 .ig-day.plan i{background:rgba(255,184,107,.18);border:1px dashed rgba(255,184,107,.6);color:#FFD29A}
+/* Text fehlt / freier Rhythmus-Tag */
+.ig-day.text i{background:rgba(255,184,107,.18);border:1px dashed rgba(255,184,107,.6);color:#FFD29A}
+.ig-day.frei i{border:1px dashed rgba(255,255,255,.28)}
 .ig-day.verpasst i{background:rgba(255,107,94,.15);border:1px dashed rgba(255,138,126,.6);color:#FF9A9A}
 .ig-hr{height:1px;background:rgba(255,255,255,.12);margin:14px 0 6px}
 .ig-wk{display:grid;grid-template-columns:52px minmax(0,1fr) 48px;align-items:center;gap:10px;font-size:13px;margin-top:8px}
@@ -577,61 +580,74 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   }
   function instaOk(){return !!(insta&&instaZugang())}
 
+  // Ziel/Woche aus dem Rhythmus der Instagram-App (Wochentage 0=So … 6=Sa, in projekte.json)
+  function instaRhythmus(){const r=insta&&Array.isArray(insta.rhythmus)?insta.rhythmus.map(Number).filter(n=>n>=0&&n<=6):[];return r}
+  function instaZiel(){const r=instaRhythmus();return r.length||Math.max(1,parseInt(insta&&insta.ziel)||3)}
+  function instaLink(){const p=projekte.find(x=>x.gruppe===(insta&&insta.gruppe)&&/instagram\.com/i.test(x.url));return p?p.url:'https://www.instagram.com/'}
+
+  // Liest nur Datum + Status aus der Tabelle „posts“ der Instagram-App (Lesezugriff ohne Anmeldung)
   async function instaLaden(){
     if(!instaOk()){instaZeigen();return}
-    const mo=montag(new Date()), bis=plusTage(mo,5*7-1);
-    const zg=instaZugang();
-    const u=zg.url+'/rest/v1/insta_posts?select=datum,status&datum=gte.'+ymd(mo)+'&datum=lte.'+ymd(bis);
+    const zg=instaZugang(), mo=montag(new Date()), bis=plusTage(mo,5*7);
+    const u=zg.url+'/rest/v1/posts?select=scheduled_at,status&scheduled_at=gte.'+encodeURIComponent(mo.toISOString())+'&scheduled_at=lt.'+encodeURIComponent(bis.toISOString());
     const h={apikey:zg.key}; if(zg.key.startsWith('eyJ')) h.Authorization='Bearer '+zg.key;
     try{
       const r=await fetch(u,{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status);
-      instaDaten=await r.json(); instaFehler=false;
+      instaDaten=(await r.json()).filter(p=>p.scheduled_at).map(p=>({datum:ymd(new Date(p.scheduled_at)),status:p.status}));
+      instaFehler=false;
     }catch(e){instaFehler=true}
     instaZeigen();
   }
 
   function instaBlock(){
-    const a=el('a','ig'); a.href='planer.html'; a.setAttribute('aria-label','Instagram-Planer öffnen');
+    const a=el('a','ig'); a.href=instaLink(); a.setAttribute('aria-label','Instagram öffnen');
     a.innerHTML=instaHtml(); return a;
   }
   function instaZeigen(){document.querySelectorAll('.ig').forEach(n=>n.innerHTML=instaHtml())}
 
   function instaHtml(){
-    const ziel=Math.max(1,parseInt(insta&&insta.ziel)||3), heute=new Date(), mo=montag(heute);
+    const ziel=instaZiel(), rhy=instaRhythmus(), heute=new Date(), mo=montag(heute);
     const igIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFC4DE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#FFC4DE"/></svg>';
     let h='<div class="ig-head"><span class="ig-t">'+igIcon+'Instagram · KW '+kw(heute)+'</span><span class="ig-lbl">Ziel '+ziel+' Posts / Woche</span></div>';
-    if(!instaOk()) return h+'<div class="ig-info">Auf diesem Gerät nicht verbunden. Tippen öffnet den Planer zum Verbinden.</div>';
-    if(instaFehler) return h+'<div class="ig-info">Instagram-Daten nicht erreichbar. Tippen öffnet den Planer.</div>';
+    if(!instaOk()) return h+'<div class="ig-info">Auf diesem Gerät nicht verbunden. Supabase-Zugang im Rechner unter Einstellungen eintragen.</div>';
+    if(instaFehler) return h+'<div class="ig-info">Daten der Instagram-App nicht erreichbar.</div>';
     if(!instaDaten) return h+'<div class="ig-info">Daten werden geladen …</div>';
 
     const posts=instaDaten, heuteS=ymd(heute);
-    const woche=i=>{const a=ymd(plusTage(mo,i*7)),b=ymd(plusTage(mo,i*7+6));return posts.filter(p=>p.datum>=a&&p.datum<=b)};
-    const diese=woche(0), gepostet=diese.filter(p=>p.status==='gepostet').length, offen=Math.max(0,ziel-gepostet);
+    const inWoche=i=>{const a=ymd(plusTage(mo,i*7)),b=ymd(plusTage(mo,i*7+6));return posts.filter(p=>p.datum>=a&&p.datum<=b)};
+    const diese=inWoche(0), gepostet=diese.filter(p=>p.status==='veroeffentlicht').length, offen=Math.max(0,ziel-gepostet);
 
     h+='<div class="ig-kpis"><div class="ig-kpi ok"><b>'+gepostet+'</b><span>✓ gepostet diese Woche</span></div>'
       +(offen>0?'<div class="ig-kpi offen"><b>'+offen+'</b><span>offen bis Sonntag</span></div>'
                :'<div class="ig-kpi fertig"><b>✓</b><span>Wochenziel erreicht</span></div>')+'</div>';
 
+    // Tagesleiste: ✓ veröffentlicht · ○ geplant · ✎ Text fehlt · ! überfällig/Fehler · gestrichelt = freier Rhythmus-Tag
     const tage=['Mo','Di','Mi','Do','Fr','Sa','So'];
     h+='<div class="ig-days">'+tage.map((t,i)=>{
-      const d=ymd(plusTage(mo,i)), am=diese.filter(p=>p.datum===d);
+      const dt=plusTage(mo,i), d=ymd(dt), am=diese.filter(p=>p.datum===d), vorbei=d<heuteS;
       let cls='', z='';
-      if(am.some(p=>p.status==='gepostet')){cls=' done';z='✓'}
-      else if(am.length){if(d<heuteS){cls=' verpasst';z='!'}else{cls=' plan';z='○'}}
+      if(am.some(p=>p.status==='veroeffentlicht')){cls=' done';z='✓'}
+      else if(am.some(p=>p.status==='fehler')||(am.length&&vorbei)){cls=' verpasst';z='!'}
+      else if(am.some(p=>p.status==='entwurf')){cls=' text';z='✎'}
+      else if(am.length){cls=' plan';z='○'}
+      else if(!vorbei&&rhy.includes(dt.getDay())){cls=' frei'}
       if(d===heuteS) cls+=' heute';
       return '<div class="ig-day'+cls+'"><i>'+z+'</i>'+t+'</div>';
     }).join('')+'</div>';
 
     h+='<div class="ig-hr"></div><div class="ig-lbl">Nächste 4 Wochen geplant</div>';
-    let fehlt=0;
+    let fehlt=0, ohneText=0;
     for(let i=1;i<=4;i++){
-      const n=woche(i).length; fehlt+=Math.max(0,ziel-n);
+      const w=inWoche(i).filter(p=>p.status!=='fehler'), n=w.length; fehlt+=Math.max(0,ziel-n);
+      ohneText+=w.filter(p=>p.status==='entwurf').length;
       const farbe=n>=ziel?'#8FE8C2':(n>0?'#FFD29A':'#FF9A9A');
-      let bar=''; for(let k=0;k<ziel;k++) bar+='<span'+(k<n?' class="v"':'')+'></span>';
+      let bar=''; for(let k=0;k<Math.max(ziel,n);k++) bar+='<span'+(k<n?' class="v"':'')+'></span>';
       h+='<div class="ig-wk"><span>KW '+kw(plusTage(mo,i*7))+'</span><div class="ig-bar">'+bar+'</div><em style="color:'+farbe+'">'+n+'/'+ziel+(n>=ziel?' ✓':'')+'</em></div>';
     }
+    ohneText+=diese.filter(p=>p.status==='entwurf'&&p.datum>=heuteS).length;
     const bisKw=kw(plusTage(mo,28));
-    h+='<div class="ig-foot">'+(fehlt>0?'Noch <b>'+fehlt+' Post'+(fehlt===1?'':'s')+'</b> zu planen bis KW '+bisKw:'✓ Alles geplant bis KW '+bisKw)+'</div>';
+    h+='<div class="ig-foot">'+(fehlt>0?'Noch <b>'+fehlt+' Post'+(fehlt===1?'':'s')+'</b> zu planen bis KW '+bisKw:'✓ Alles geplant bis KW '+bisKw)
+      +(ohneText?' · <b>'+ohneText+'</b> noch ohne Text':'')+'</div>';
     return h;
   }
 
