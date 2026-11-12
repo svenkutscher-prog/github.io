@@ -146,6 +146,60 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 @media (prefers-reduced-motion: reduce){.blob,.glass::after,.rise,.pop,h1{animation:none}}
+
+/* Instagram-Kennzahlen (Gruppe fotoArtisan) */
+.ig{display:block;position:relative;border-radius:20px;padding:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:inherit}
+.ig:hover{background:rgba(255,255,255,.10)}
+.ig:focus-visible{outline:3px solid #9DB4FF;outline-offset:3px}
+.ig-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.ig-t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.ig-lbl{font-size:12px;color:var(--muted)}
+.ig-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ig-kpi{border-radius:16px;padding:12px}
+.ig-kpi b{display:block;font:700 34px/1 "Bricolage Grotesque",sans-serif}
+.ig-kpi span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.ig-kpi.ok{background:rgba(94,207,160,.12);border:1px solid rgba(94,207,160,.35)}
+.ig-kpi.ok b{color:#8FE8C2}
+.ig-kpi.offen{background:rgba(255,184,107,.12);border:1px solid rgba(255,184,107,.4)}
+.ig-kpi.offen b{color:#FFD29A}
+.ig-kpi.fertig{background:rgba(94,207,160,.12);border:1px solid rgba(94,207,160,.35)}
+.ig-kpi.fertig b{color:#8FE8C2}
+.ig-days{display:flex;gap:5px;margin-top:12px}
+.ig-day{flex:1;min-width:0;text-align:center;font-size:12px;color:var(--muted)}
+.ig-day i{display:grid;place-items:center;height:30px;border-radius:9px;margin-bottom:4px;border:1px solid rgba(255,255,255,.14);font-style:normal;font-size:13px}
+.ig-day.heute{color:#fff;font-weight:600}
+.ig-day.heute i{border:1.5px solid #fff}
+.ig-day.done i{background:rgba(94,207,160,.25);border-color:rgba(94,207,160,.5);color:#8FE8C2}
+.ig-day.plan i{background:rgba(255,184,107,.18);border:1px dashed rgba(255,184,107,.6);color:#FFD29A}
+.ig-day.verpasst i{background:rgba(255,107,94,.15);border:1px dashed rgba(255,138,126,.6);color:#FF9A9A}
+.ig-hr{height:1px;background:rgba(255,255,255,.12);margin:14px 0 6px}
+.ig-wk{display:grid;grid-template-columns:52px minmax(0,1fr) 48px;align-items:center;gap:10px;font-size:13px;margin-top:8px}
+.ig-bar{display:flex;gap:4px}
+.ig-bar span{flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.10)}
+.ig-bar span.v{background:#8FE8C2}
+.ig-wk em{font-style:normal;text-align:right}
+.ig-foot{margin-top:12px;font-size:13px;color:rgba(242,244,255,.85)}
+.ig-foot b{color:#FFD29A}
+.ig-info{font-size:13px;color:var(--muted)}
+
+/* iPad mini: hochkant (ab 700 px) und quer (ab 1000 px) – breiter und größer */
+@media (min-width:700px){
+  main{max-width:740px;padding:48px 28px 56px}
+  .dock{max-width:704px}
+  .grid{gap:16px}
+  .tile{min-height:150px;padding:20px}
+  .name{font-size:20px}
+  h1{font-size:46px}
+  .sub-tile{min-height:120px;padding:14px}
+  .sub-tile .name{font-size:17px}
+  .group{padding:18px;gap:16px}
+  .ig{padding:16px}
+}
+@media (min-width:1000px){
+  main{max-width:1000px}
+  .dock{max-width:964px}
+  .tile{min-height:170px}
+}
 </style>
 </head>
 <body>
@@ -212,6 +266,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   const ARROW='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(242,244,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
   const $=id=>document.getElementById(id);
 
+  let insta=null, instaDaten=null, instaFehler=false;   // Instagram-Kennzahlen (Konfiguration aus projekte.json)
   let projekte=[], gruppen=[], ziehung=null, q='', erstesRender=true, energieDatum='', einkaufOffen=0;
 
   // Kopfzeile
@@ -485,6 +540,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const gg=el('div','group-grid'); gg.style.gridTemplateColumns=`repeat(${Math.min(liste.length,3)}, minmax(0, 1fr))`;
     liste.forEach(p=>gg.append(kachel(p,0,true)));
     sec.append(gg);
+    if(insta && name===insta.gruppe) sec.append(instaBlock());   // Instagram-Kennzahlen unter den Kacheln
     return sec;
   }
 
@@ -508,6 +564,77 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     $('empty').hidden=total>0;
   }
 
+  // ===== Instagram-Kennzahlen (Supabase-Tabelle insta_posts) =====
+  function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function montag(d){const m=new Date(d.getFullYear(),d.getMonth(),d.getDate());m.setDate(m.getDate()-((m.getDay()+6)%7));return m}
+  function plusTage(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+  function kw(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const j=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-j)/864e5+1)/7)}
+  // Zugangsdaten NICHT aus GitHub: aus den Rechner-Einstellungen auf diesem Gerät (gleiche Domain)
+  function instaZugang(){
+    try{const s=JSON.parse(localStorage.getItem('ksp_settings')||'{}');
+        const url=String(s.supabaseUrl||'').trim().replace(/\/+$/,''), key=String(s.supabaseKey||'').trim();
+        return url&&key?{url,key}:null}catch(e){return null}
+  }
+  function instaOk(){return !!(insta&&instaZugang())}
+
+  async function instaLaden(){
+    if(!instaOk()){instaZeigen();return}
+    const mo=montag(new Date()), bis=plusTage(mo,5*7-1);
+    const zg=instaZugang();
+    const u=zg.url+'/rest/v1/insta_posts?select=datum,status&datum=gte.'+ymd(mo)+'&datum=lte.'+ymd(bis);
+    const h={apikey:zg.key}; if(zg.key.startsWith('eyJ')) h.Authorization='Bearer '+zg.key;
+    try{
+      const r=await fetch(u,{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status);
+      instaDaten=await r.json(); instaFehler=false;
+    }catch(e){instaFehler=true}
+    instaZeigen();
+  }
+
+  function instaBlock(){
+    const a=el('a','ig'); a.href='planer.html'; a.setAttribute('aria-label','Instagram-Planer öffnen');
+    a.innerHTML=instaHtml(); return a;
+  }
+  function instaZeigen(){document.querySelectorAll('.ig').forEach(n=>n.innerHTML=instaHtml())}
+
+  function instaHtml(){
+    const ziel=Math.max(1,parseInt(insta&&insta.ziel)||3), heute=new Date(), mo=montag(heute);
+    const igIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFC4DE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#FFC4DE"/></svg>';
+    let h='<div class="ig-head"><span class="ig-t">'+igIcon+'Instagram · KW '+kw(heute)+'</span><span class="ig-lbl">Ziel '+ziel+' Posts / Woche</span></div>';
+    if(!instaOk()) return h+'<div class="ig-info">Auf diesem Gerät nicht verbunden. Tippen öffnet den Planer zum Verbinden.</div>';
+    if(instaFehler) return h+'<div class="ig-info">Instagram-Daten nicht erreichbar. Tippen öffnet den Planer.</div>';
+    if(!instaDaten) return h+'<div class="ig-info">Daten werden geladen …</div>';
+
+    const posts=instaDaten, heuteS=ymd(heute);
+    const woche=i=>{const a=ymd(plusTage(mo,i*7)),b=ymd(plusTage(mo,i*7+6));return posts.filter(p=>p.datum>=a&&p.datum<=b)};
+    const diese=woche(0), gepostet=diese.filter(p=>p.status==='gepostet').length, offen=Math.max(0,ziel-gepostet);
+
+    h+='<div class="ig-kpis"><div class="ig-kpi ok"><b>'+gepostet+'</b><span>✓ gepostet diese Woche</span></div>'
+      +(offen>0?'<div class="ig-kpi offen"><b>'+offen+'</b><span>offen bis Sonntag</span></div>'
+               :'<div class="ig-kpi fertig"><b>✓</b><span>Wochenziel erreicht</span></div>')+'</div>';
+
+    const tage=['Mo','Di','Mi','Do','Fr','Sa','So'];
+    h+='<div class="ig-days">'+tage.map((t,i)=>{
+      const d=ymd(plusTage(mo,i)), am=diese.filter(p=>p.datum===d);
+      let cls='', z='';
+      if(am.some(p=>p.status==='gepostet')){cls=' done';z='✓'}
+      else if(am.length){if(d<heuteS){cls=' verpasst';z='!'}else{cls=' plan';z='○'}}
+      if(d===heuteS) cls+=' heute';
+      return '<div class="ig-day'+cls+'"><i>'+z+'</i>'+t+'</div>';
+    }).join('')+'</div>';
+
+    h+='<div class="ig-hr"></div><div class="ig-lbl">Nächste 4 Wochen geplant</div>';
+    let fehlt=0;
+    for(let i=1;i<=4;i++){
+      const n=woche(i).length; fehlt+=Math.max(0,ziel-n);
+      const farbe=n>=ziel?'#8FE8C2':(n>0?'#FFD29A':'#FF9A9A');
+      let bar=''; for(let k=0;k<ziel;k++) bar+='<span'+(k<n?' class="v"':'')+'></span>';
+      h+='<div class="ig-wk"><span>KW '+kw(plusTage(mo,i*7))+'</span><div class="ig-bar">'+bar+'</div><em style="color:'+farbe+'">'+n+'/'+ziel+(n>=ziel?' ✓':'')+'</em></div>';
+    }
+    const bisKw=kw(plusTage(mo,28));
+    h+='<div class="ig-foot">'+(fehlt>0?'Noch <b>'+fehlt+' Post'+(fehlt===1?'':'s')+'</b> zu planen bis KW '+bisKw:'✓ Alles geplant bis KW '+bisKw)+'</div>';
+    return h;
+  }
+
   async function laden(){
     const [p,z]=await Promise.allSettled([
       fetch('projekte.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()),
@@ -516,6 +643,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     if(p.status==='fulfilled'&&Array.isArray(p.value.projekte)){
       projekte=p.value.projekte.filter(x=>x&&x.name&&x.url);
       gruppen=Array.isArray(p.value.gruppen)?p.value.gruppen.filter(g=>g&&g.name):[];
+      if(p.value.instagram&&typeof p.value.instagram==='object'){insta=Object.assign({gruppe:'fotoArtisan',ziel:3},p.value.instagram);instaLaden()}
       if(typeof p.value.name==='string'&&p.value.name.trim()){NAME=p.value.name.trim();kopf()}
     }
     if(z.status==='fulfilled'&&Array.isArray(z.value.draws)&&z.value.draws.length){
