@@ -2,7 +2,7 @@
   "name": "Sabine",
   "instagram": {
     "gruppe": "fotoArtisan",
-    "ziel": 3
+    "rhythmus": [1, 3, 6]
   },
   "gruppen": [
     { "name": "fotoArtisan", "farbe": "#FF7AB6", "icon": "blende" }
