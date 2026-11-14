@@ -152,6 +152,26 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .avatar{cursor:pointer}
 .avatar-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;font-size:0}
 #katze{will-change:transform,opacity}
+/* Minispiel "Fang die Maus" */
+#hello{cursor:pointer}
+.spiel{position:fixed;inset:0;z-index:50;background:rgba(15,19,48,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.spiel[hidden]{display:none}
+.spiel-hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;z-index:4}
+.spiel-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:var(--text);font:600 14px Geist,sans-serif;padding:6px 12px;border-radius:15px;font-variant-numeric:tabular-nums}
+.spiel-zu{width:34px;height:34px;border-radius:17px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.1);color:var(--text);font-size:18px;line-height:1;cursor:pointer}
+#spielMaus{position:absolute;left:0;top:0;width:56px;height:46px;display:grid;place-items:center;cursor:pointer;z-index:3;opacity:0;transition:opacity .25s;will-change:transform}
+#spielMaus svg{width:46px;height:33px}
+.spiel-pfote{position:absolute;width:44px;height:44px;pointer-events:none;z-index:2;animation:spielPfote .6s ease-out forwards}
+@keyframes spielPfote{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:translateY(-14px)}}
+.spiel-plus{position:absolute;color:#FFB86B;font:600 15px Geist,sans-serif;pointer-events:none;z-index:2;animation:spielPlus .7s ease-out forwards}
+@keyframes spielPlus{to{opacity:0;transform:translateY(-24px)}}
+.spiel-ov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(15,19,48,.6)}
+.spiel-ov[hidden]{display:none}
+.spiel-titel{font:800 30px/1.1 "Bricolage Grotesque",Geist,sans-serif;margin:12px 0 8px}
+.spiel-text{margin:0;max-width:280px;color:var(--muted);font-size:15px}
+.spiel-rekord{margin:14px 0 0;color:#FFB86B;font-size:14px;font-weight:600}
+.spiel-btn{margin-top:20px;background:#FF7AB6;color:#4B1528;border:none;font:600 16px Geist,sans-serif;padding:12px 30px;border-radius:24px;cursor:pointer}
+.spiel-zahl{font:800 64px/1 "Bricolage Grotesque",Geist,sans-serif;margin:4px 0 6px}
 .avatar.foto img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2px solid var(--ground);display:block}
 #katze{position:absolute;left:0;top:0;width:72px;height:52px;z-index:5;opacity:0;pointer-events:none;transition:opacity .4s}
 #katze.da{opacity:1;pointer-events:auto;cursor:pointer}
@@ -252,6 +272,32 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   </svg></div>
   <p class="empty" id="empty" hidden>Kein Projekt gefunden. Suchbegriff ändern.</p>
 </main>
+
+<div class="spiel" id="spiel" hidden>
+  <div class="spiel-hud"><span class="spiel-pill" id="spielZeit">30 s</span><span class="spiel-pill" id="spielPunkte">0</span><button type="button" class="spiel-zu" id="spielZu" aria-label="Spiel schließen">×</button></div>
+  <div id="spielFeld"></div>
+  <div id="spielMaus" aria-hidden="true"><svg viewBox="0 0 48 34">
+    <path d="M6 22 C-2 20 0 8 8 10" stroke="#C9C3D6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="22" cy="21" rx="15" ry="10" fill="#B4AFC2"/>
+    <circle cx="33" cy="9" r="6" fill="#B4AFC2"/><circle cx="33" cy="9" r="3.4" fill="#F4C0D1"/>
+    <path d="M30 14 Q42 12 45 20 Q38 25 30 23 Z" fill="#B4AFC2"/>
+    <circle cx="39" cy="17" r="1.6" fill="#0F1330"/><circle cx="45.2" cy="20" r="1.6" fill="#ED93B1"/>
+    <path d="M44 22 l4 1 M44 20 l4 -1" stroke="#fff" stroke-width=".8" opacity=".7"/>
+  </svg></div>
+  <div class="spiel-ov" id="spielStart">
+    <svg viewBox="0 0 96 70" width="120" height="88" aria-hidden="true"><path d="M14 38 C2 34 2 16 10 10" stroke="#FFB86B" stroke-width="6" fill="none" stroke-linecap="round"/><line x1="24" y1="42" x2="24" y2="60" stroke="#D9853A" stroke-width="4.5" stroke-linecap="round"/><line x1="62" y1="42" x2="62" y2="60" stroke="#D9853A" stroke-width="4.5" stroke-linecap="round"/><ellipse cx="45" cy="40" rx="30" ry="13" fill="#FFB86B"/><line x1="30" y1="44" x2="30" y2="60" stroke="#FFB86B" stroke-width="4.5" stroke-linecap="round"/><line x1="68" y1="44" x2="68" y2="60" stroke="#FFB86B" stroke-width="4.5" stroke-linecap="round"/><circle cx="76" cy="28" r="13" fill="#FFB86B"/><path d="M66 20 L67 6 L75 16 Z M78 16 L86 6 L87 20 Z" fill="#FFB86B"/><circle cx="72" cy="27" r="2" fill="#0F1330"/><circle cx="82" cy="27" r="2" fill="#0F1330"/></svg>
+    <p class="spiel-titel">Fang die Maus</p>
+    <p class="spiel-text">Tippe die Maus so oft an, wie du kannst. Sie wird immer schneller.</p>
+    <p class="spiel-rekord" id="spielRekordStart"></p>
+    <button type="button" class="spiel-btn" id="spielLos">Los geht’s</button>
+  </div>
+  <div class="spiel-ov" id="spielEnde" hidden>
+    <p class="spiel-text">Gefangen</p>
+    <p class="spiel-zahl" id="spielEndPunkte">0</p>
+    <p class="spiel-rekord" id="spielRekordEnde"></p>
+    <button type="button" class="spiel-btn" id="spielNochmal">Nochmal</button>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -776,7 +822,71 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       .then(()=>lauf(x1,x2,1800))
       .then(()=>{k.classList.remove('da');setTimeout(()=>{katzeLaeuft=false},400)});
   }
-  $('katze').addEventListener('click',()=>katzeLos(true));
+  $('katze').addEventListener('click',()=>spielOeffnen()); // Katze antippen -> Minispiel
+  $('hello').addEventListener('click',()=>katzeLos(true));  // Begrüßung antippen -> Katze läuft nochmal
+
+  // ===== Minispiel "Fang die Maus" (Rekord pro Name, nur auf diesem Gerät) =====
+  const SPIEL_SEK=30;
+  const sp={laeuft:false,x:0,y:0,zx:0,zy:0,tempo:2,punkte:0,rest:SPIEL_SEK,versteckt:false,timer:null,raf:null};
+  const spielRekordKey=()=>'mausRekord_'+NAME;
+  const spielRekord=()=>{try{return Number(localStorage.getItem(spielRekordKey()))||0}catch(e){return 0}};
+  const spielMasse=()=>{const f=$('spiel');return{w:f.clientWidth,h:f.clientHeight,oben:90}};
+  function spielZufall(){const m=spielMasse();return{x:12+Math.random()*(m.w-56-24),y:m.oben+Math.random()*(m.h-46-m.oben-30)}}
+  function spielZiel(){const z=spielZufall();sp.zx=z.x;sp.zy=z.y}
+  function spielSetzen(){$('spielMaus').style.transform=`translate(${sp.x}px,${sp.y}px)`}
+  function spielSchritt(){
+    if(!sp.laeuft) return;
+    const dx=sp.zx-sp.x, dy=sp.zy-sp.y, d=Math.hypot(dx,dy);
+    if(d<4){
+      if(!sp.versteckt&&Math.random()<.18){ // kurz verstecken und woanders auftauchen
+        sp.versteckt=true; $('spielMaus').style.opacity=0;
+        setTimeout(()=>{if(!sp.laeuft)return;const z=spielZufall();sp.x=z.x;sp.y=z.y;spielSetzen();spielZiel();$('spielMaus').style.opacity=1;sp.versteckt=false},500+Math.random()*500);
+      }else spielZiel();
+    }else{
+      sp.x+=dx/d*sp.tempo; sp.y+=dy/d*sp.tempo;
+      $('spielMaus').firstElementChild.style.transform=dx<0?'scaleX(-1)':'none';
+    }
+    spielSetzen(); sp.raf=requestAnimationFrame(spielSchritt);
+  }
+  function spielEffekt(px,py){
+    const p=el('div','spiel-pfote'); p.style.left=(px-22)+'px'; p.style.top=(py-22)+'px';
+    p.innerHTML='<svg viewBox="0 0 40 40" width="44" height="44"><ellipse cx="20" cy="26" rx="9" ry="8" fill="#FF7AB6"/><circle cx="10" cy="15" r="4" fill="#FF7AB6"/><circle cx="17" cy="10" r="4" fill="#FF7AB6"/><circle cx="24" cy="10" r="4" fill="#FF7AB6"/><circle cx="31" cy="15" r="4" fill="#FF7AB6"/></svg>';
+    const t=el('div','spiel-plus','+1'); t.style.left=(px+16)+'px'; t.style.top=(py-28)+'px';
+    $('spielFeld').append(p,t); setTimeout(()=>{p.remove();t.remove()},750);
+  }
+  $('spielMaus').addEventListener('pointerdown',e=>{
+    if(!sp.laeuft||sp.versteckt) return; e.preventDefault();
+    sp.punkte++; $('spielPunkte').textContent=sp.punkte; spielEffekt(sp.x+28,sp.y+23); sp.tempo+=.4;
+    try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}
+    sp.versteckt=true; $('spielMaus').style.opacity=0;
+    setTimeout(()=>{if(!sp.laeuft)return;const z=spielZufall();sp.x=z.x;sp.y=z.y;spielSetzen();spielZiel();$('spielMaus').style.opacity=1;sp.versteckt=false},350);
+  });
+  function spielStart(){
+    $('spielStart').hidden=true; $('spielEnde').hidden=true;
+    Object.assign(sp,{laeuft:true,punkte:0,rest:SPIEL_SEK,tempo:2,versteckt:false});
+    $('spielPunkte').textContent='0'; $('spielZeit').textContent=SPIEL_SEK+' s';
+    const z=spielZufall(); sp.x=z.x; sp.y=z.y; spielSetzen(); spielZiel(); $('spielMaus').style.opacity=1;
+    cancelAnimationFrame(sp.raf); spielSchritt();
+    clearInterval(sp.timer); sp.timer=setInterval(()=>{sp.rest--;$('spielZeit').textContent=sp.rest+' s';if(sp.rest<=0)spielEnde()},1000);
+  }
+  function spielStop(){sp.laeuft=false;clearInterval(sp.timer);cancelAnimationFrame(sp.raf);$('spielMaus').style.opacity=0}
+  function spielEnde(){
+    spielStop();
+    const alt=spielRekord(), neu=sp.punkte>alt;
+    if(neu){try{localStorage.setItem(spielRekordKey(),sp.punkte)}catch(e){}}
+    $('spielEndPunkte').textContent=sp.punkte;
+    $('spielRekordEnde').textContent=neu?'Neuer Rekord!':'Rekord: '+alt;
+    $('spielEnde').hidden=false;
+  }
+  function spielOeffnen(){
+    spielStop();
+    const r=spielRekord(); $('spielRekordStart').textContent=r?'Dein Rekord: '+r:'';
+    $('spielStart').hidden=false; $('spielEnde').hidden=true; $('spiel').hidden=false;
+  }
+  $('spielLos').addEventListener('click',spielStart);
+  $('spielNochmal').addEventListener('click',spielStart);
+  $('spielZu').addEventListener('click',()=>{spielStop();$('spiel').hidden=true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&sp.laeuft)spielEnde()});
 
   setInterval(()=>{const c=$('cd');if(c)c.textContent=countdownText()},1000);
   // Datum des letzten Datensatzes aus dem Energie-Dashboard
