@@ -146,6 +146,18 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 @media (prefers-reduced-motion: reduce){.blob,.glass::after,.rise,.pop,h1{animation:none}}
+/* Profilbild + Katze auf der Eurojackpot-Kachel */
+.avatar.foto{padding:3px;background:#FF7AB6}
+.avatar.foto img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2px solid var(--ground);display:block}
+#katze{position:absolute;left:0;top:0;width:72px;height:52px;z-index:5;opacity:0;pointer-events:none;transition:opacity .4s}
+#katze.da{opacity:1;pointer-events:auto;cursor:pointer}
+#katze svg{display:block;width:72px;height:52px}
+#katze .bein{transform-box:fill-box;transform-origin:top center}
+#katze.laeuft .b1,#katze.laeuft .b4{animation:katzeSchritt .3s ease-in-out infinite alternate}
+#katze.laeuft .b2,#katze.laeuft .b3{animation:katzeSchritt .3s ease-in-out infinite alternate-reverse}
+@keyframes katzeSchritt{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+#katze .schwanz{transform-box:fill-box;transform-origin:0% 100%;animation:katzeWedeln 1.1s ease-in-out infinite alternate}
+@keyframes katzeWedeln{from{transform:rotate(-10deg)}to{transform:rotate(14deg)}}
 
 /* Instagram-Kennzahlen (Gruppe fotoArtisan) */
 .ig{display:block;position:relative;border-radius:20px;padding:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:inherit}
@@ -217,8 +229,23 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     <a class="glass avatar" id="profil" href="#" aria-label="GitHub-Profil öffnen">S</a>
   </header>
 
-  <p class="count rise" id="count" style="animation-delay:120ms"></p>
+  <p class="count rise" id="count" style="animation-delay:120ms;display:none"></p>
   <div class="grid" id="grid"></div>
+  <div id="katze" aria-hidden="true"><svg viewBox="0 0 96 70">
+    <path class="schwanz" d="M14 38 C2 34 2 16 10 10" stroke="#FFB86B" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <rect class="bein b1" x="20" y="44" width="6" height="18" rx="3" fill="#E08A3C"/>
+    <rect class="bein b2" x="30" y="44" width="6" height="18" rx="3" fill="#FFB86B"/>
+    <rect class="bein b3" x="56" y="44" width="6" height="18" rx="3" fill="#E08A3C"/>
+    <rect class="bein b4" x="66" y="44" width="6" height="18" rx="3" fill="#FFB86B"/>
+    <ellipse cx="45" cy="40" rx="30" ry="13" fill="#FFB86B"/>
+    <path d="M34 30 l4 0 M44 28 l4 0 M54 30 l4 0" stroke="#E08A3C" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="76" cy="28" r="13" fill="#FFB86B"/>
+    <path d="M66 20 L67 6 L75 16 Z M78 16 L86 6 L87 20 Z" fill="#FFB86B"/>
+    <path d="M68.5 17 L69 10 L73 15 Z M80 15 L84.5 10 L85 17 Z" fill="#F4C0D1"/>
+    <circle cx="72" cy="27" r="2" fill="#0F1330"/><circle cx="82" cy="27" r="2" fill="#0F1330"/>
+    <path d="M75.5 31 l1.5 1.5 l1.5 -1.5" stroke="#0F1330" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <path d="M64 31 h-8 M64 34 h-7 M89 31 h7 M89 34 h6" stroke="#fff" stroke-width="1" opacity=".7"/>
+  </svg></div>
   <p class="empty" id="empty" hidden>Kein Projekt gefunden. Suchbegriff ändern.</p>
 </main>
 
@@ -519,7 +546,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const chip=el('span','chip'); chip.style.background=c+'33'; chip.style.border='1px solid '+c+'73';
     chip.innerHTML=svg(ICONS[p.icon]||ICONS.ordner,hell(c),klein?20:22);
     // myplan erkennen – mit oder ohne "/" am Ende der Adresse
-    if(/\/myplan(\/|#|\?|$)/i.test(p.url)){a.dataset.myplan=p.url.replace(/#.*$/,'');a.dataset.name=p.name;chip.style.position='relative';setTimeout(()=>einkaufZeigen(),0)}
+    if(/\/myplan(\/|#|\?|$)/i.test(p.url)){a.dataset.myplan=p.url.replace(/#.*$/,'');a.dataset.k=nouriCodeAus(p.url);a.dataset.name=p.name;chip.style.position='relative';setTimeout(()=>einkaufZeigen(),0)}
     row.append(chip); row.insertAdjacentHTML('beforeend',klein?ARROW.replace(/18/g,'16'):ARROW); a.append(row);
     const t=el('div'); t.style.position='relative';
     t.append(el('span','name',p.name)); if(p.beschreibung) t.append(el('span','sub',p.beschreibung));
@@ -661,12 +688,46 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       gruppen=Array.isArray(p.value.gruppen)?p.value.gruppen.filter(g=>g&&g.name):[];
       if(p.value.instagram&&typeof p.value.instagram==='object'){insta=Object.assign({gruppe:'fotoArtisan',ziel:3},p.value.instagram);instaLaden()}
       if(typeof p.value.name==='string'&&p.value.name.trim()){NAME=p.value.name.trim();kopf()}
+      if(typeof p.value.bild==='string'&&p.value.bild.trim()) profilBild(p.value.bild.trim()); // Profilbild oben rechts
     }
     if(z.status==='fulfilled'&&Array.isArray(z.value.draws)&&z.value.draws.length){
       ziehung=[...z.value.draws].sort((a,b)=>b.date.localeCompare(a.date))[0];
     }
     render(); erstesRender=false;
+    ladeEinkauf(); // jetzt ist der Freigabe-Code aus projekte.json bekannt
+    setTimeout(()=>katzeLos(false),1500); // nach den Einblend-Animationen
   }
+
+  // Profilbild statt Buchstabe (Datei im Repo, Eintrag "bild" in projekte.json)
+  function profilBild(src){
+    const img=new Image(); img.alt='';
+    img.onload=()=>{const a=$('profil');a.classList.add('foto');a.replaceChildren(img)};
+    img.src=src;
+  }
+  // Katze läuft einmal am Tag über die obere Kante der Eurojackpot-Kachel (Antippen: nochmal)
+  let katzeLaeuft=false;
+  function katzeLos(manuell){
+    const k=$('katze'), ej=document.querySelector('.tile.ej'), m=document.querySelector('main');
+    if(katzeLaeuft||ruhig()||!k||!ej||!m) return;
+    if(!manuell){
+      const heute=new Date().toDateString();
+      try{ if(localStorage.getItem('katzeTag')===heute) return; localStorage.setItem('katzeTag',heute); }catch(e){}
+    }
+    katzeLaeuft=true;
+    const r=ej.getBoundingClientRect(), mr=m.getBoundingClientRect();
+    const x0=r.left-mr.left+14, x2=r.right-mr.left-72-14, x1=(x0+x2)/2;
+    k.style.top=(r.top-mr.top-46)+'px';            // Pfoten stehen auf der Kachel-Kante
+    k.style.transform=`translateX(${x0}px)`;
+    const lauf=(von,bis,ms)=>{k.classList.add('laeuft');
+      return k.animate([{transform:`translateX(${von}px)`},{transform:`translateX(${bis}px)`}],{duration:ms,easing:'ease-in-out',fill:'forwards'})
+        .finished.then(()=>k.classList.remove('laeuft'))};
+    k.classList.add('da');
+    lauf(x0,x1,1800)
+      .then(()=>new Promise(w=>setTimeout(w,1600)))  // kurz stehen bleiben, Schwanz wedelt
+      .then(()=>lauf(x1,x2,1800))
+      .then(()=>{k.classList.remove('da');setTimeout(()=>{katzeLaeuft=false},400)});
+  }
+  $('katze').addEventListener('click',()=>katzeLos(true));
 
   setInterval(()=>{const c=$('cd');if(c)c.textContent=countdownText()},1000);
   // Datum des letzten Datensatzes aus dem Energie-Dashboard
@@ -687,6 +748,13 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     energieZeigen();
   }
 
+  // Freigabe-Code aus dem myplan-Link (…/myplan/#k=abc) – wird für Badge-Abfrage und Kachel-Link gebraucht
+  function nouriCodeAus(url){const m=String(url||'').match(/#(?:.*&)?k=([^&]+)/);return m?decodeURIComponent(m[1]):''}
+  function nouriCode(){
+    const p=projekte.find(x=>/\/myplan(\/|#|\?|$)/i.test(x.url)&&nouriCodeAus(x.url));
+    if(p) return nouriCodeAus(p.url);
+    try{return localStorage.getItem('nouriCode')||''}catch(e){return ''} // von myplan auf diesem Gerät gespeichert
+  }
   // Einkaufsliste aus myplan: rote Badge mit Anzahl offener Einträge
   function einkaufZeigen(){
     document.querySelectorAll('a[data-myplan]').forEach(a=>{
@@ -695,11 +763,11 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       if(einkaufOffen>0){
         if(!b){b=el('span','badge');b.setAttribute('aria-hidden','true');chip.append(b)}
         b.textContent=einkaufOffen>99?'99+':einkaufOffen;
-        a.href=a.dataset.myplan+MYPLAN.ziel;
+        a.href=a.dataset.myplan+MYPLAN.ziel+(a.dataset.k?'&k='+encodeURIComponent(a.dataset.k):'');
         a.setAttribute('aria-label',`${a.dataset.name}: ${einkaufOffen} ${einkaufOffen===1?'Artikel':'Artikel'} auf der Einkaufsliste`);
       }else{
         if(b) b.remove();
-        a.href=a.dataset.myplan; a.removeAttribute('aria-label');
+        a.href=a.dataset.myplan+(a.dataset.k?'#k='+encodeURIComponent(a.dataset.k):''); a.removeAttribute('aria-label');
       }
     });
   }
@@ -709,9 +777,10 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       const l=c&&c.data&&c.data.shoppingNeeds;
       if(Array.isArray(l)){einkaufOffen=l.filter(x=>x&&(x.status==='offen'||x.status==='manuell')).length;einkaufZeigen()}
     }catch(e){}
+    const code=nouriCode(); if(!code) return; // ohne Freigabe-Code liefert Supabase nichts -> Zwischenspeicher-Wert behalten
     try{ // dann live aus Supabase: offene und manuell hinzugefügte Artikel (nicht "im Wagen")
       const u=`${MYPLAN.url}/rest/v1/records?select=id&tbl=eq.ShoppingNeeds&fields->>Status=in.(offen,manuell)`;
-      const r=await fetch(u,{headers:{apikey:MYPLAN.key}});
+      const r=await fetch(u,{headers:{apikey:MYPLAN.key,'x-nouri-code':code}});
       if(!r.ok) throw 0;
       einkaufOffen=(await r.json()).length; einkaufZeigen();
     }catch(e){}
