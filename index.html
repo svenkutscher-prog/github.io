@@ -78,6 +78,13 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .ej-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;position:relative;font-size:14px;color:var(--muted)}
 .ej-foot b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .empty{margin:28px 4px;color:var(--muted)}
+.ej-ecke{position:absolute;right:0;bottom:0;width:74px;height:62px;border-top-left-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;line-height:1;z-index:1;animation:pop .6s cubic-bezier(.2,1.4,.3,1) both}
+.ej-ecke b{font:700 26px/1 "Bricolage Grotesque",Geist,sans-serif}
+.ej-ecke small{font-size:11px;margin-top:3px}
+.ej-ecke.gruen{background:#2FA765}
+.ej-ecke.rot{background:#E5372C}
+.ej.mit-ecke .ej-foot{padding-right:64px}
+.ej.mit-ecke .ej-foot b{white-space:nowrap}
 .badge{position:absolute;top:-8px;right:-10px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF3B30;color:#fff;font:700 13px/22px Geist,-apple-system,sans-serif;text-align:center;box-shadow:0 0 0 2px rgba(15,19,48,.85),0 6px 14px -4px rgba(255,59,48,.8);animation:pop .6s cubic-bezier(.2,1.4,.3,1) both}
 
 /* Diesel-Kachel */
@@ -156,7 +163,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 #hello{cursor:pointer}
 .spiel{position:fixed;inset:0;z-index:50;background:rgba(15,19,48,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
 .spiel[hidden]{display:none}
-.spiel-hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;z-index:4}
+.spiel-hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;z-index:6}
 .spiel-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:var(--text);font:600 14px Geist,sans-serif;padding:6px 12px;border-radius:15px;font-variant-numeric:tabular-nums}
 .spiel-zu{width:34px;height:34px;border-radius:17px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.1);color:var(--text);font-size:18px;line-height:1;cursor:pointer}
 #spielMaus{position:absolute;left:0;top:0;width:56px;height:46px;display:grid;place-items:center;cursor:pointer;z-index:3;opacity:0;transition:opacity .25s;will-change:transform}
@@ -399,6 +406,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const left=el('span'); left.append('Nächste Ziehung in ');
     const cd=el('b',null,countdownText()); cd.id='cd'; left.append(cd);
     foot.append(left); a.append(foot);
+    ejEcke(a); // Laufzeit des Spielscheins unten rechts
     return a;
   }
 
@@ -746,6 +754,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     }
     render(); erstesRender=false;
     ladeEinkauf(); // jetzt ist der Freigabe-Code aus projekte.json bekannt
+    ladeSchein(); // Laufzeit des Eurojackpot-Scheins
     ladeProfilbild(); // jetzt ist der Name aus projekte.json bekannt
     setTimeout(()=>katzeLos(false),1500); // nach den Einblend-Animationen
   }
@@ -945,10 +954,51 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     }catch(e){}
   }
 
+  // ===== Eurojackpot-Schein: gültige Wochen als Ecke auf der Kachel =====
+  // Gleiche Daten wie die Eurojackpot-App (Supabase records, tbl = EJSchein; Zwischenspeicher "ej-schein")
+  let ejSchein=null;
+  const ejIso=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''));
+  function ejScheinAus(f){
+    if(typeof f==='string'){try{f=JSON.parse(f)}catch(e){return null}}
+    if(!f) return null;
+    if(ejIso(f.bis)) return f.bis;
+    const w=parseInt(f.wochen,10);                       // altes Format: Abgabedatum + Wochen
+    if(ejIso(f.abgabe)&&w>=1){const d=new Date(f.abgabe+'T12:00:00');d.setDate(d.getDate()+((5-d.getDay()+7)%7)+w*7);return tagIso(d)}
+    return null;
+  }
+  function ejEcke(kachel){
+    const a=kachel||document.querySelector('.tile.ej'); if(!a) return;
+    const alt=a.querySelector('.ej-ecke'); if(alt) alt.remove();
+    a.classList.toggle('mit-ecke',!!ejSchein);
+    if(!ejSchein) return;
+    const now=new Date(), bis=new Date(ejSchein+'T12:00:00'), ende=new Date(bis);
+    if(bis.getDay()===5) ende.setHours(20,0,0,0); else ende.setHours(23,59,59,0);
+    const heute=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0);
+    const tage=Math.round((bis-heute)/864e5), abgelaufen=now>ende;
+    let n=0; for(let d=new Date(heute);d<=bis;d.setDate(d.getDate()+1)){if(d.getDay()===5){const z=new Date(d);z.setHours(20,0,0,0);if(z>now)n++}}
+    const e=el('div','ej-ecke '+(abgelaufen||tage<=7?'rot':'gruen'));
+    if(abgelaufen) e.append(el('b',null,'Ende'));
+    else e.append(el('b',null,String(n)),el('small',null,n===1?'Woche':'Wochen'));
+    e.setAttribute('aria-hidden','true');
+    if(abgelaufen) e.querySelector('b').style.fontSize='18px';
+    a.append(e);
+    a.setAttribute('aria-label',`Eurojackpot-Check öffnen – Schein ${abgelaufen?'abgelaufen':'noch '+n+(n===1?' Woche':' Wochen')+' gültig'}`);
+  }
+  async function ladeSchein(){
+    try{const c=JSON.parse(localStorage.getItem('ej-schein')||'null');const b=c&&ejScheinAus(c.schein);if(b){ejSchein=b;ejEcke()}}catch(e){}
+    const code=nouriCode(); if(!code) return;
+    try{
+      const r=await fetch(`${MYPLAN.url}/rest/v1/records?select=fields&tbl=eq.EJSchein`,{headers:{apikey:MYPLAN.key,'x-nouri-code':code}});
+      if(!r.ok) throw 0;
+      const rows=await r.json(), b=rows[0]&&ejScheinAus(rows[0].fields);
+      if(b!==ejSchein){ejSchein=b||null;ejEcke()}
+    }catch(e){}
+  }
+
   setInterval(kopf,60000);
   setInterval(()=>ladeDiesel(false),DIESEL.intervall);
   kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false)}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein()}});
 })();
 </script>
 </body>
