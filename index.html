@@ -148,6 +148,10 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 @media (prefers-reduced-motion: reduce){.blob,.glass::after,.rise,.pop,h1{animation:none}}
 /* Profilbild + Katze auf der Eurojackpot-Kachel */
 .avatar.foto{padding:3px;background:#FF7AB6}
+.avatar.speichert{opacity:.5}
+.avatar{cursor:pointer}
+.avatar-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;font-size:0}
+#katze{will-change:transform,opacity}
 .avatar.foto img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2px solid var(--ground);display:block}
 #katze{position:absolute;left:0;top:0;width:72px;height:52px;z-index:5;opacity:0;pointer-events:none;transition:opacity .4s}
 #katze.da{opacity:1;pointer-events:auto;cursor:pointer}
@@ -226,7 +230,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       <p class="date" id="date"></p>
       <h1 id="hello">Hallo</h1>
     </div>
-    <a class="glass avatar" id="profil" href="#" aria-label="GitHub-Profil öffnen">S</a>
+    <label class="glass avatar" id="profil" aria-label="Profilbild ändern"><span class="avatar-text">S</span><input type="file" id="bildWahl" accept="image/*" class="avatar-input"></label>
   </header>
 
   <p class="count rise" id="count" style="animation-delay:120ms;display:none"></p>
@@ -300,7 +304,8 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   let projekte=[], gruppen=[], ziehung=null, q='', erstesRender=true, energieDatum='', einkaufOffen=0;
 
   // Kopfzeile
-  $('profil').href='https://github.com/'+GITHUB_USER;
+  // Button oben rechts: Profilbild hochladen (statt GitHub-Profil)
+  $('bildWahl').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f) bildHochladen(f)});
   function kopf(){
     const now=new Date(), h=now.getHours();
     const g=h<11?'Guten Morgen':h<17?'Hallo':h<22?'Guten Abend':'Gute Nacht';
@@ -695,14 +700,58 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     }
     render(); erstesRender=false;
     ladeEinkauf(); // jetzt ist der Freigabe-Code aus projekte.json bekannt
+    ladeProfilbild(); // jetzt ist der Name aus projekte.json bekannt
     setTimeout(()=>katzeLos(false),1500); // nach den Einblend-Animationen
   }
 
   // Profilbild statt Buchstabe (Datei im Repo, Eintrag "bild" in projekte.json)
   function profilBild(src){
     const img=new Image(); img.alt='';
-    img.onload=()=>{const a=$('profil');a.classList.add('foto');a.replaceChildren(img)};
+    img.onload=()=>{const a=$('profil');a.classList.add('foto');
+      a.querySelectorAll('img,.avatar-text').forEach(n=>n.remove()); a.prepend(img)}; // Datei-Feld bleibt erhalten
     img.src=src;
+  }
+  // Profilbild in Supabase (Tabelle profilbilder, pro Name aus projekte.json) + Zwischenspeicher auf dem Gerät
+  const bildCacheKey=()=>'profilbild_'+NAME;
+  async function ladeProfilbild(){
+    try{const c=localStorage.getItem(bildCacheKey());if(c) profilBild(c)}catch(e){}
+    const code=nouriCode(); if(!code) return;
+    try{
+      const r=await fetch(`${MYPLAN.url}/rest/v1/profilbilder?select=bild&name=eq.${encodeURIComponent(NAME)}`,{headers:{apikey:MYPLAN.key,'x-nouri-code':code}});
+      if(!r.ok) return;
+      const rows=await r.json();
+      if(rows[0]&&rows[0].bild){profilBild(rows[0].bild);try{localStorage.setItem(bildCacheKey(),rows[0].bild)}catch(e){}}
+    }catch(e){}
+  }
+  // Foto quadratisch auf die Mitte zuschneiden und auf 256 px verkleinern
+  function bildVerkleinern(file){
+    return new Promise((ok,fehler)=>{
+      const url=URL.createObjectURL(file), img=new Image();
+      img.onload=()=>{
+        const s=Math.min(img.naturalWidth,img.naturalHeight), z=256, cv=document.createElement('canvas');
+        cv.width=cv.height=z;
+        cv.getContext('2d').drawImage(img,(img.naturalWidth-s)/2,(img.naturalHeight-s)/2,s,s,0,0,z,z);
+        URL.revokeObjectURL(url); ok(cv.toDataURL('image/jpeg',0.82));
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);fehler(new Error('Bild konnte nicht gelesen werden'))};
+      img.src=url;
+    });
+  }
+  async function bildHochladen(file){
+    const a=$('profil');
+    try{
+      const daten=await bildVerkleinern(file);
+      profilBild(daten);
+      try{localStorage.setItem(bildCacheKey(),daten)}catch(e){}
+      const code=nouriCode();
+      if(!code){alert('Bild nur auf diesem Gerät gespeichert – kein Freigabe-Code für die Datenbank gefunden.');return}
+      a.classList.add('speichert');
+      const r=await fetch(`${MYPLAN.url}/rest/v1/profilbilder`,{method:'POST',
+        headers:{apikey:MYPLAN.key,'x-nouri-code':code,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},
+        body:JSON.stringify({name:NAME,bild:daten,updated_at:new Date().toISOString()})});
+      if(!r.ok) throw new Error('Speichern fehlgeschlagen ('+r.status+')');
+    }catch(err){alert(err.message||'Bild konnte nicht gespeichert werden')}
+    finally{a.classList.remove('speichert')}
   }
   // Katze läuft einmal am Tag über die obere Kante der Eurojackpot-Kachel (Antippen: nochmal)
   let katzeLaeuft=false;
