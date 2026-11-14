@@ -156,11 +156,11 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 #katze{position:absolute;left:0;top:0;width:72px;height:52px;z-index:5;opacity:0;pointer-events:none;transition:opacity .4s}
 #katze.da{opacity:1;pointer-events:auto;cursor:pointer}
 #katze svg{display:block;width:72px;height:52px}
-#katze .bein{transform-box:fill-box;transform-origin:top center}
+#katze .bein{transform-box:view-box}
 #katze.laeuft .b1,#katze.laeuft .b4{animation:katzeSchritt .3s ease-in-out infinite alternate}
 #katze.laeuft .b2,#katze.laeuft .b3{animation:katzeSchritt .3s ease-in-out infinite alternate-reverse}
-@keyframes katzeSchritt{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
-#katze .schwanz{transform-box:fill-box;transform-origin:0% 100%;animation:katzeWedeln 1.1s ease-in-out infinite alternate}
+@keyframes katzeSchritt{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+#katze .schwanz{transform-box:view-box;transform-origin:14px 38px;animation:katzeWedeln 1.1s ease-in-out infinite alternate}
 @keyframes katzeWedeln{from{transform:rotate(-10deg)}to{transform:rotate(14deg)}}
 
 /* Instagram-Kennzahlen (Gruppe fotoArtisan) */
@@ -237,12 +237,12 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   <div class="grid" id="grid"></div>
   <div id="katze" aria-hidden="true"><svg viewBox="0 0 96 70">
     <path class="schwanz" d="M14 38 C2 34 2 16 10 10" stroke="#FFB86B" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <rect class="bein b1" x="20" y="44" width="6" height="18" rx="3" fill="#E08A3C"/>
-    <rect class="bein b2" x="30" y="44" width="6" height="18" rx="3" fill="#FFB86B"/>
-    <rect class="bein b3" x="56" y="44" width="6" height="18" rx="3" fill="#E08A3C"/>
-    <rect class="bein b4" x="66" y="44" width="6" height="18" rx="3" fill="#FFB86B"/>
+    <line class="bein b1" x1="24" y1="42" x2="24" y2="60" stroke="#D9853A" stroke-width="4.5" stroke-linecap="round" style="transform-origin:24px 42px"/>
+    <line class="bein b3" x1="62" y1="42" x2="62" y2="60" stroke="#D9853A" stroke-width="4.5" stroke-linecap="round" style="transform-origin:62px 42px"/>
     <ellipse cx="45" cy="40" rx="30" ry="13" fill="#FFB86B"/>
     <path d="M34 30 l4 0 M44 28 l4 0 M54 30 l4 0" stroke="#E08A3C" stroke-width="3" stroke-linecap="round"/>
+    <line class="bein b2" x1="30" y1="44" x2="30" y2="60" stroke="#FFB86B" stroke-width="4.5" stroke-linecap="round" style="transform-origin:30px 44px"/>
+    <line class="bein b4" x1="68" y1="44" x2="68" y2="60" stroke="#FFB86B" stroke-width="4.5" stroke-linecap="round" style="transform-origin:68px 44px"/>
     <circle cx="76" cy="28" r="13" fill="#FFB86B"/>
     <path d="M66 20 L67 6 L75 16 Z M78 16 L86 6 L87 20 Z" fill="#FFB86B"/>
     <path d="M68.5 17 L69 10 L73 15 Z M80 15 L84.5 10 L85 17 Z" fill="#F4C0D1"/>
@@ -765,7 +765,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     katzeLaeuft=true;
     const r=ej.getBoundingClientRect(), mr=m.getBoundingClientRect();
     const x0=r.left-mr.left+14, x2=r.right-mr.left-72-14, x1=(x0+x2)/2;
-    k.style.top=(r.top-mr.top-46)+'px';            // Pfoten stehen auf der Kachel-Kante
+    k.style.top=(r.top-mr.top-46.5)+'px';            // Pfoten stehen auf der Kachel-Kante
     k.style.transform=`translateX(${x0}px)`;
     const lauf=(von,bis,ms)=>{k.classList.add('laeuft');
       return k.animate([{transform:`translateX(${von}px)`},{transform:`translateX(${bis}px)`}],{duration:ms,easing:'ease-in-out',fill:'forwards'})
