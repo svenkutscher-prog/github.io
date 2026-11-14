@@ -8,7 +8,7 @@
     { "name": "fotoArtisan", "farbe": "#FF7AB6", "icon": "blende" }
   ],
   "projekte": [
-    { "name": "SK Einkaufswagen",            "beschreibung": "Sven Essen",            "url": "https://svenkutscher-prog.github.io/myplan/",            "farbe": "#5B8CFF", "icon": "kalender" },
+    { "name": "SK Einkaufswagen",            "beschreibung": "Sven Essen",            "url": "https://svenkutscher-prog.github.io/myplan/#k=cecbb60708d14a88ba4d449e",            "farbe": "#5B8CFF", "icon": "kalender" },
     { "name": "WAGAEL DASH", "beschreibung": "", "url": "https://svenkutscher-prog.github.io/energie-dashboard/", "farbe": "#FFB547", "icon": "blitz" },
     { "name": "Rechner",   "beschreibung": "",       "url": "https://svenkutscher-prog.github.io/rechner/", "farbe": "#E879F9", "icon": "rechner", "gruppe": "fotoArtisan" },
     { "name": "Instagram", "beschreibung": "",  "url": "https://www.instagram.com/foto.artisan/",     "farbe": "#FF7AB6", "icon": "kamera",  "gruppe": "fotoArtisan" },
