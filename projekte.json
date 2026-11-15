@@ -10,6 +10,7 @@
   "projekte": [
     { "name": "SK Einkaufswagen",            "beschreibung": "Sven Essen",            "url": "https://svenkutscher-prog.github.io/myplan/#k=cecbb60708d14a88ba4d449e",            "farbe": "#5B8CFF", "icon": "kalender" },
     { "name": "WAGAEL DASH", "beschreibung": "", "url": "https://svenkutscher-prog.github.io/energie-dashboard/", "farbe": "#FFB547", "icon": "blitz" },
+    { "name": "WP", "beschreibung": "Wärmepumpe", "url": "https://svenkutscher-prog.github.io/wagaelv2/", "icon": "blitz", "farbe": "#FF8A3D" },
     { "name": "Rechner",   "beschreibung": "",       "url": "https://svenkutscher-prog.github.io/rechner/", "farbe": "#E879F9", "icon": "rechner", "gruppe": "fotoArtisan" },
     { "name": "Instagram", "beschreibung": "",  "url": "https://www.instagram.com/foto.artisan/",     "farbe": "#FF7AB6", "icon": "kamera",  "gruppe": "fotoArtisan" },
     { "name": "Webseite",  "beschreibung": "", "url": "https://fotoartisan.de",                      "farbe": "#FFB86B", "icon": "globus",  "gruppe": "fotoArtisan" }
