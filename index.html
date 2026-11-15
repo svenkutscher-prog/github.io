@@ -228,6 +228,11 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .ig-foot b{color:#FFD29A}
 .ig-info{font-size:13px;color:var(--muted)}
 
+/* WP-Kachel: Token-Countdown */
+.wp-info{font-variant-numeric:tabular-nums}
+.wp-info.bald{color:#FFD29A}
+.wp-info.ab{color:#FF8A7E;font-weight:600}
+
 /* iPad mini: hochkant (ab 700 px) und quer (ab 1000 px) – breiter und größer */
 @media (min-width:700px){
   main{max-width:740px;padding:48px 28px 56px}
@@ -245,6 +250,8 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   main{max-width:1000px}
   .dock{max-width:964px}
   .tile{min-height:170px}
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr))}   /* 3 Kacheln nebeneinander */
+  .ej,.ds,.group{grid-column:1/-1}                      /* breite Kacheln über die volle Breite */
 }
 </style>
 </head>
@@ -333,6 +340,13 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     cache: 'diesel_linnich_v2',
     tage: 14,                                           // so viele Tage merken
     intervall: 36e5                                     // automatisch stündlich, solange die Seite offen ist
+  };
+
+  // Wärmepumpe (WAGAEL): Ablauf des SmartThings-Tokens – Status ist ohne Login abrufbar
+  const WP = {
+    status: 'https://umkiprxcwqwhbudmvaci.supabase.co/functions/v1/capture',
+    key: 'sb_publishable_kvmQTcpqL1AqEdIx51z47A_qjzOUZqu',
+    warnStd: 2                                          // ab hier orange
   };
 
   const ICONS = {
@@ -610,6 +624,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const t=el('div'); t.style.position='relative';
     t.append(el('span','name',p.name)); if(p.beschreibung) t.append(el('span','sub',p.beschreibung));
     if(/energie-dashboard/i.test(p.url)){const i=el('span','sub energie-info',energieDatum?'Letzter Eintrag: '+energieDatum:'Daten werden geladen …');t.append(i)}
+    if(/\/wagaelv2/i.test(p.url)){a.dataset.wp='1';chip.style.position='relative';t.append(el('span','sub wp-info','Token wird geprüft …'));setTimeout(()=>wpZeigen(),0)}
     a.append(t);
     return a;
   }
@@ -916,6 +931,40 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     energieZeigen();
   }
 
+  // ===== Wärmepumpe: Countdown bis der SmartThings-Token abläuft =====
+  let wpStatus=null, wpFehler=false;
+  function wpZeigen(){
+    document.querySelectorAll('a[data-wp]').forEach(a=>{
+      const i=a.querySelector('.wp-info'), chip=a.querySelector('.chip'); if(!i||!chip) return;
+      let text, cls='', rot=false;
+      if(wpFehler&&!wpStatus){text='Status nicht erreichbar'}
+      else if(!wpStatus){text='Token wird geprüft …'}
+      else{
+        const bis=wpStatus.expires_at?new Date(wpStatus.expires_at).getTime():0, rest=bis-Date.now();
+        if(!wpStatus.saved_at){text='Kein Token eingetragen';cls='ab';rot=true}
+        else if(wpStatus.expired_at||rest<=0){text='Token abgelaufen – erneuern';cls='ab';rot=true}
+        else{
+          const min=Math.floor(rest/6e4), std=Math.floor(min/60);
+          text=`Token noch ${std}:${String(min%60).padStart(2,'0')} Std`;
+          if(rest<WP.warnStd*36e5) cls='bald';
+        }
+      }
+      i.textContent=text; i.className='sub wp-info'+(cls?' '+cls:'');
+      let b=chip.querySelector('.badge');
+      if(rot){if(!b){b=el('span','badge','!');b.setAttribute('aria-hidden','true');chip.append(b)}}
+      else if(b) b.remove();
+      a.setAttribute('aria-label',`${a.querySelector('.name')?.textContent||'Wärmepumpe'}: ${text}`);
+    });
+  }
+  async function ladeWP(){
+    try{
+      const r=await fetch(WP.status,{method:'POST',headers:{'Content-Type':'application/json',apikey:WP.key},body:JSON.stringify({mode:'status'})});
+      if(!r.ok) throw 0;
+      wpStatus=await r.json(); wpFehler=false;
+    }catch(e){wpFehler=true}
+    wpZeigen();
+  }
+
   // Freigabe-Code aus dem myplan-Link (…/myplan/#k=abc) – wird für Badge-Abfrage und Kachel-Link gebraucht
   function nouriCodeAus(url){const m=String(url||'').match(/#(?:.*&)?k=([^&]+)/);return m?decodeURIComponent(m[1]):''}
   function nouriCode(){
@@ -997,8 +1046,10 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 
   setInterval(kopf,60000);
   setInterval(()=>ladeDiesel(false),DIESEL.intervall);
-  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein()}});
+  setInterval(wpZeigen,30000);          // Countdown jede halbe Minute
+  setInterval(ladeWP,5*6e4);            // Status alle 5 Min neu holen
+  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP()}});
 })();
 </script>
 </body>
