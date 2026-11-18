@@ -52,6 +52,10 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:12p
 h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spacing:-.02em;background:linear-gradient(90deg,#FFFFFF 0%,#C9D4FF 40%,#FFD9A0 70%,#FFFFFF 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hue 7s ease-in-out infinite alternate}
 @keyframes hue{to{background-position:100% 0}}
 .avatar{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;font:700 18px "Bricolage Grotesque",sans-serif;flex:none}
+.kopf-btns{display:flex;gap:10px;flex:none}
+.neu-btn{border:0;color:inherit;font:inherit;padding:0}
+.neu-btn:focus-visible{outline:3px solid #9DB4FF;outline-offset:3px}
+.neu-btn.dreht svg{animation:dsdreh .8s linear infinite}
 .count{margin:26px 2px 12px;font-size:15px;color:var(--muted)}
 
 /* Kacheln */
@@ -264,6 +268,32 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .wps-day .wps-bar{height:6px}
 .wps-day em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
 .wps-info{font-size:14px;color:var(--muted)}
+.wps-seg{display:flex;gap:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:4px}
+.wps-seg button{flex:1;min-width:0;border:0;border-radius:10px;padding:8px 4px;font:500 14px Geist,-apple-system,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wps-seg button.on{background:rgba(255,255,255,.2);color:var(--text);font-weight:600}
+.wps-seg button:focus-visible,.wps-link:focus-visible{outline:3px solid #9DB4FF;outline-offset:2px}
+.wps-link{display:grid;place-items:center;padding:6px;margin:-6px;border-radius:12px}
+.wps-body2,.wps-l2{display:flex;flex-direction:column;gap:12px}
+.wps-body2{gap:14px}
+.wps-split{display:flex;height:24px;border-radius:8px;overflow:hidden;font:600 12px Geist,sans-serif}
+.wps-split i{display:flex;align-items:center;padding-left:8px;font-style:normal;white-space:nowrap;overflow:hidden}
+.wps-wp{background:#E2683A;color:#FFF1EA}
+.wps-rest{background:rgba(120,130,200,.55);color:#E3E7F7}
+.wps-tb{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(3,minmax(0,1fr));font-size:15px;font-variant-numeric:tabular-nums}
+.wps-tb span{padding:8px 0;text-align:right}
+.wps-tb .l{text-align:left}
+.wps-tb .kopf{font-size:13px;color:var(--muted);padding-top:0}
+.wps-tb .kopf.wp{color:#FFB08A}.wps-tb .kopf.hell{color:var(--text)}
+.wps-tb .linie{border-bottom:1px solid rgba(255,255,255,.16)}
+.wps-tb .stark{font-weight:600}
+.wps-tb .sonne{color:#FFD27A}
+.wps-tb .akku{color:#4CD98A}
+.wps-tb .linie2{border-bottom:1px solid rgba(255,255,255,.35)}
+.wps-tb .netz{font-weight:600;padding:10px 0}
+.wps-tb .l.netz{color:#F4C0D1}
+.wps-tb .gross{font:700 19px "Bricolage Grotesque",Geist,sans-serif}
+.wps-tb .fuss{grid-column:1/-1;font-size:12px;color:var(--muted);text-align:right;padding:2px 0 0}
+
 .wps-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
 .wps-d span{display:block;font-size:12px;color:var(--muted)}
 .wps-d.heute span{color:var(--text);font-weight:600}
@@ -296,7 +326,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   .tile{min-height:170px}
   .grid{grid-template-columns:repeat(3,minmax(0,1fr))}   /* 3 Kacheln nebeneinander */
   .ej,.ds,.group{grid-column:1/-1}                      /* breite Kacheln über die volle Breite */
-  .wps-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:28px}   /* Wärmepumpe & Sonne: zwei Spalten */
+  .wps-body2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:28px;align-items:start}   /* Woher kam der Strom: zwei Spalten */
 }
 </style>
 </head>
@@ -309,7 +339,10 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       <p class="date" id="date"></p>
       <h1 id="hello">Hallo</h1>
     </div>
-    <label class="glass avatar" id="profil" aria-label="Profilbild ändern"><span class="avatar-text">S</span><input type="file" id="bildWahl" accept="image/*" class="avatar-input"></label>
+    <div class="kopf-btns">
+      <button type="button" class="glass avatar neu-btn" id="neuLaden" aria-label="Seite neu laden"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F2F4FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+      <label class="glass avatar" id="profil" aria-label="Profilbild ändern"><span class="avatar-text">S</span><input type="file" id="bildWahl" accept="image/*" class="avatar-input"></label>
+    </div>
   </header>
 
   <p class="count rise" id="count" style="animation-delay:120ms;display:none"></p>
@@ -419,6 +452,8 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 
   // Kopfzeile
   // Button oben rechts: Profilbild hochladen (statt GitHub-Profil)
+  // Button oben rechts: ganze Seite neu laden (auch als Home-Bildschirm-App, wo der Browser-Knopf fehlt)
+  $('neuLaden').addEventListener('click',()=>{$('neuLaden').classList.add('dreht');setTimeout(()=>location.reload(),150)});
   $('bildWahl').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f) bildHochladen(f)});
   function kopf(){
     const now=new Date(), h=now.getHours();
@@ -1097,12 +1132,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   setInterval(()=>ladeDiesel(false),DIESEL.intervall);
   setInterval(wpZeigen,30000);          // Countdown jede halbe Minute
   setInterval(ladeWP,5*6e4);            // Status alle 5 Min neu holen
-  // ===== Wärmepumpe & Sonne: wie viel Solarstrom hat die Wärmepumpe bekommen? =====
+  // ===== Wärmepumpe & Sonne: woher kam der Strom? (Heute · Gestern · 7 Tage · Monat) =====
   // Liest mit der WAGAEL-Anmeldung dieses Geräts (gleiche Domain) – ohne Anmeldung zeigt die Kachel einen Hinweis.
-  // Rechnung wie in WAGAEL: jeder Verbrauchsschritt der Wärmepumpe bekommt den Strom-Mix des Hauses (FoxESS); Akku zählt als Sonne.
+  // Haus: FoxESS-Zähler (Verbrauch wie in der FoxESS-App). Wärmepumpe: WAGAEL-Zähler, jeder Verbrauchsschritt bekommt
+  // den Strom-Mix des Hauses zu dieser Zeit. Rest-Haus = Haus − Wärmepumpe.
   const WPS={url:'https://umkiprxcwqwhbudmvaci.supabase.co',key:'sb_publishable_kvmQTcpqL1AqEdIx51z47A_qjzOUZqu',
-    session:'sb-umkiprxcwqwhbudmvaci-auth-token',tage:7};
-  let wps=null, wpsStatus='laedt', wpsLaedt=false;
+    session:'sb-umkiprxcwqwhbudmvaci-auth-token'};
+  let wps=null, wpsStatus='laedt', wpsLaedt=false, wpsSel=0;
+  try{wpsSel=Math.min(3,Math.max(0,parseInt(localStorage.getItem('wps_tab'))||0))}catch(e){}
   function wpsLink(){const p=projekte.find(x=>/\/wagaelv2/i.test(x.url));return (p?p.url.replace(/#.*$/,''):'/wagaelv2/')+'#solar'}
 
   async function wpsToken(){
@@ -1123,58 +1160,64 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     while(true){
       const r=await fetch(`${WPS.url}/rest/v1/${pfad}&limit=1000&offset=${off}`,{headers:{apikey:WPS.key,Authorization:'Bearer '+tok}});
       if(r.status===401) throw new Error('login'); if(!r.ok) throw new Error('HTTP '+r.status);
-      const t=await r.json(); out=out.concat(t); if(t.length<1000||out.length>=20000) return out; off+=1000;
+      const t=await r.json(); out=out.concat(t); if(t.length<1000||out.length>=30000) return out; off+=1000;
     }
   }
-  // Anteil Sonne/Netz am Hausstrom in einem Moment (Akku zählt als Sonne)
-  function wpsMix(p){if(!p||p.load_kw==null)return null;const g=Math.min(1,Math.max(0,(p.grid_kw||0)/Math.max(p.load_kw,0.01)));return{sun:1-g,grid:g}}
+  // Herkunft des Hausstroms in einem Moment: Sonne direkt / Akku / Netz (zusammen 1)
+  function wpsMix(p){
+    if(!p||p.load_kw==null) return null;
+    const L=Math.max(p.load_kw,0.01), c=v=>Math.min(1,Math.max(0,(v||0)/L)), g=c(p.grid_kw), bat=Math.min(c(p.bat_discharge_kw),1-g);
+    return {sun:1-g-bat,bat,grid:g};
+  }
   function wpsMixAt(pv,a,b){ // Mittel der PV-Messungen in [a,b], sonst nächste Messung (max. 6 Min.)
     let lo=0,hi=pv.length; while(lo<hi){const m=(lo+hi)>>1; if(pv[m].t<a) lo=m+1; else hi=m}
-    let s=0,g=0,n=0; for(let i=lo;i<pv.length&&pv[i].t<=b;i++){const m=wpsMix(pv[i]);if(m){s+=m.sun;g+=m.grid;n++}}
-    if(n) return {sun:s/n,grid:g/n};
+    const acc={sun:0,bat:0,grid:0}; let n=0;
+    for(let i=lo;i<pv.length&&pv[i].t<=b;i++){const m=wpsMix(pv[i]);if(m){acc.sun+=m.sun;acc.bat+=m.bat;acc.grid+=m.grid;n++}}
+    if(n) return {sun:acc.sun/n,bat:acc.bat/n,grid:acc.grid/n};
     const mid=(a+b)/2, c=[pv[lo],pv[lo-1]].filter(Boolean).sort((x,y)=>Math.abs(x.t-mid)-Math.abs(y.t-mid))[0];
     return c&&Math.abs(c.t-mid)<=6*6e4?wpsMix(c):null;
   }
-  function wpsRechnen(pv,hp,start){
-    const h0=new Date(); h0.setHours(0,0,0,0); const H0=h0.getTime(), now=Date.now();
-    const tage={}, std=Array.from({length:24},()=>({sun:0,grid:0})); let nacht=0;
+  // Ein Zeitraum [a,b): Haus, Wärmepumpe, Rest-Haus – jeweils braucht / Sonne direkt / Akku / Netz (kWh)
+  function wpsZeitraum(pv,hp,a,b){
+    const inP=pv.filter(p=>p.t>=a&&p.t<b); if(inP.length<2) return null;
+    const s=pv.filter(p=>p.t<a&&p.t>=a-36e5).pop()||inP[0], z=inP[inP.length-1];   // Zählerstand am Anfang (max. 1 Std. davor)
+    const df=c=>s[c]!=null&&z[c]!=null?Math.max(0,z[c]-s[c]):null;
+    const v=['pv_total_kwh','grid_total_kwh','feedin_total_kwh','bat_charge_total_kwh','bat_discharge_total_kwh'].map(df);
+    if(v.some(x=>x==null)) return null;
+    const [pvE,g,fe,bc,bd]=v, need=Math.max(0,pvE+g-fe-bc+bd);   // Verbrauch wie in der FoxESS-App
+    const haus={need,grid:g,akku:bd,sun:Math.max(0,need-g-bd)};
+    const wp={need:0,sun:0,akku:0,grid:0};
     for(let i=1;i<hp.length;i++){
-      const a=hp[i-1], b=hp[i], gap=b.t-a.t;
-      if(a.energy_wh==null||b.energy_wh==null||gap>60*6e4||b.t<start) continue;   // Datenlücke oder vor dem Zeitraum
-      const wh=b.energy_wh-a.energy_wh; if(!(wh>0)) continue;
-      const m=wpsMixAt(pv,b.t-Math.min(gap,5*6e4),b.t), d=new Date(b.t), key=tagIso(d);
-      const T=tage[key]||(tage[key]={t:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),sun:0,grid:0,none:0});
-      if(!m){T.none+=wh;continue}
-      T.sun+=wh*m.sun; T.grid+=wh*m.grid;
-      if(b.t>=H0){const h=d.getHours(); std[h].sun+=wh*m.sun; std[h].grid+=wh*m.grid; if(h<6||h>=22) nacht+=wh*m.grid}
+      const x=hp[i-1], y=hp[i], gap=y.t-x.t;
+      if(y.t<a||y.t>=b||x.energy_wh==null||y.energy_wh==null||gap>60*6e4) continue;   // außerhalb oder Datenlücke
+      const wh=y.energy_wh-x.energy_wh; if(!(wh>0)) continue;
+      const m=wpsMixAt(pv,y.t-Math.min(gap,5*6e4),y.t); if(!m) continue;              // nur Zeit mit PV-Daten
+      const k=wh/1000; wp.need+=k; wp.sun+=k*m.sun; wp.akku+=k*m.bat; wp.grid+=k*m.grid;
     }
-    // Hausstrom je Tag wie in der FoxESS-App: Solar + Netzbezug − Einspeisung − Akku laden + Akku entladen
-    const haus={}, netz={}, akku={};
-    for(let i=0;i<WPS.tage;i++){
-      const d=new Date(H0); d.setDate(d.getDate()-i); const e=new Date(d); e.setDate(e.getDate()+1); const a=d.getTime(), b=e.getTime();
-      const inD=pv.filter(p=>p.t>=a&&p.t<b); if(inD.length<2) continue;
-      const socs=inD.map(p=>p.soc).filter(x=>x!=null); if(socs.length) akku[tagIso(d)]=Math.max(...socs);   // höchster Akku-Stand des Tages
-      const s=pv.filter(p=>p.t<a&&p.t>=a-36e5).pop()||inD[0], z=inD[inD.length-1];   // Zählerstand um Mitternacht (max. 1 Std. davor)
-      const df=c=>s[c]!=null&&z[c]!=null?z[c]-s[c]:null;
-      const v=['pv_total_kwh','grid_total_kwh','feedin_total_kwh','bat_charge_total_kwh','bat_discharge_total_kwh'].map(df);
-      if(v.every(x=>x!=null)) haus[tagIso(d)]=Math.max(0,v[0]+v[1]-v[2]-v[3]+v[4]);
-      if(v[1]!=null) netz[tagIso(d)]=Math.max(0,v[1]);   // Netzbezug (gekaufter Strom) des ganzen Hauses
-    }
-    const lh=hp[hp.length-1], lp=pv[pv.length-1];
-    return {tage:Object.values(tage).sort((x,y)=>y.t-x.t), std, nacht, haus, netz, akku, heute:tage[tagIso(new Date())]||{sun:0,grid:0,none:0},
-      jetzt:{kw:lh&&now-lh.t<20*6e4?lh.power_kw:null, mix:lp&&now-lp.t<20*6e4?wpsMix(lp):null, t:lh?lh.t:null}};
+    const rest={}; for(const key of ['need','sun','akku','grid']) rest[key]=Math.max(0,haus[key]-wp[key]);
+    return {wp,rest,haus,ab:inP[0].t};
   }
   async function ladeWPS(){
     if(wpsLaedt) return; wpsLaedt=true;
     try{
       const tok=await wpsToken(); if(!tok){wpsStatus='login';return}
-      const start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-(WPS.tage-1));
-      const F=new Date(start.getTime()-36e5).toISOString();
-      const [pv,hp]=await Promise.all([
-        wpsAlle(`pv_snapshots?select=captured_at,fox_time,load_kw,grid_kw,soc,pv_total_kwh,grid_total_kwh,feedin_total_kwh,bat_charge_total_kwh,bat_discharge_total_kwh&captured_at=gte.${F}&order=captured_at.asc`,tok),
-        wpsAlle(`snapshots?select=captured_at,energy_wh,power_kw&hp_valve=not.is.null&captured_at=gte.${F}&order=captured_at.asc`,tok)]);
-      wps=wpsRechnen(pv.map(p=>({...p,t:new Date(p.fox_time||p.captured_at).getTime()})).sort((x,y)=>x.t-y.t),
-        hp.map(h=>({...h,t:new Date(h.captured_at).getTime()})),start.getTime());
+      const h0=new Date(); h0.setHours(0,0,0,0);
+      const w0=new Date(h0); w0.setDate(w0.getDate()-6);
+      const g0=new Date(h0); g0.setDate(g0.getDate()-1);
+      const m0=new Date(h0.getFullYear(),h0.getMonth(),1);
+      const start=Math.min(w0.getTime(),m0.getTime()), F=new Date(start-36e5).toISOString();
+      const [pvR,hpR]=await Promise.all([
+        wpsAlle(`pv_snapshots?select=captured_at,fox_time,load_kw,grid_kw,bat_discharge_kw,pv_total_kwh,grid_total_kwh,feedin_total_kwh,bat_charge_total_kwh,bat_discharge_total_kwh&captured_at=gte.${F}&order=captured_at.asc`,tok),
+        wpsAlle(`snapshots?select=captured_at,energy_wh&hp_valve=not.is.null&captured_at=gte.${F}&order=captured_at.asc`,tok)]);
+      const pv=pvR.map(p=>({...p,t:new Date(p.fox_time||p.captured_at).getTime()})).sort((x,y)=>x.t-y.t);
+      const hp=hpR.map(h=>({...h,t:new Date(h.captured_at).getTime()}));
+      const now=Date.now(), dm=d=>d.toLocaleDateString('de-DE',{day:'numeric',month:'numeric'});
+      const bisHeute=dm(h0);
+      wps={stand:pv.length?pv[pv.length-1].t:null, p:[
+        {name:'Heute', info:'', ...{x:wpsZeitraum(pv,hp,h0.getTime(),now+1)}, a:h0.getTime()},
+        {name:'Gestern', info:g0.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'}), x:wpsZeitraum(pv,hp,g0.getTime(),h0.getTime()), a:g0.getTime()},
+        {name:'7 Tage', info:`${dm(w0)}–${bisHeute}`, x:wpsZeitraum(pv,hp,w0.getTime(),now+1), a:w0.getTime()},
+        {name:h0.toLocaleDateString('de-DE',{month:'long'}), info:`${dm(m0)}–${bisHeute}`, x:wpsZeitraum(pv,hp,m0.getTime(),now+1), a:m0.getTime()}]};
       wpsStatus='ok';
     }catch(e){wpsStatus=e.message==='login'?'login':'fehler'}
     finally{wpsLaedt=false;wpsZeigen()}
@@ -1183,59 +1226,47 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   function wpsHtml(){
     if(wpsStatus==='login') return '<div class="wps-info">Auf diesem Gerät nicht bei WAGAEL angemeldet. Einmal in WAGAEL anmelden – dann erscheinen die Werte hier.</div>';
     if(!wps) return `<div class="wps-info">${wpsStatus==='fehler'?'Daten gerade nicht erreichbar.':'Daten werden geladen …'}</div>`;
-    const k=wh=>(wh/1000).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1});
-    const pc=(s,g)=>s+g>20?Math.round(s/(s+g)*100):null;
-    const H=wps.heute, p=pc(H.sun,H.grid), j=wps.jetzt, kw=v=>v.toFixed(1).replace('.',',');
-    let jt, js='', sonnig=false;
-    if(j.kw==null){jt='keine aktuellen Daten'}
-    else if(j.kw<0.15){jt='steht gerade';js='braucht kaum Strom'}
-    else if(j.mix){const s=Math.round(j.mix.sun*100);sonnig=s>=50;jt=sonnig?'läuft mit Sonne':'läuft mit Netzstrom';js=`jetzt ${kw(j.kw)} kW · ${s} % Sonne`}
-    else{jt='läuft';js=`jetzt ${kw(j.kw)} kW`}
-    const icon=sonnig?svg(ICONS.sonne,'#FFD27A',30):svg(j.kw!=null&&j.kw>=0.15?ICONS.blitz:ICONS.mond,'rgba(242,244,255,.8)',28);
-    let tipp=null;
-    if(wps.nacht>500) tipp=[svg(ICONS.mond,'rgba(242,244,255,.85)',18),`Nachts liefen ${k(wps.nacht)} kWh nur mit Netzstrom`];
-    else if(p!=null&&p>=50) tipp=[svg(ICONS.sonne,'#FFD27A',18),'Mehr als die Hälfte heute mit Sonne'];
-    else if(p!=null) tipp=[svg(ICONS.sonne,'#FFD27A',18),'Warmwasser mittags laden bringt mehr Sonne'];
-    // Wochenleiste: 7 Tage bis heute – Kreis = % Sonne der Wärmepumpe, darunter Netzbezug des Hauses
-    const woche=[];
-    for(let i=WPS.tage-1;i>=0;i--){
-      const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); const key=tagIso(d);
-      const T=wps.tage.find(x=>tagIso(new Date(x.t))===key), q=T?pc(T.sun,T.grid):null, h=wps.netz[key], heute=i===0;
-      const cls=q==null?'':q>=60?' s3':q>=30?' s2':' s1';
-      // Akku-Symbol: höchster Ladestand des Tages (ab 95 % = voll)
-      const s=wps.akku[key], voll=s!=null&&s>=95, farbe=s==null?'':voll||s>=40?'#4CD98A':s>=20?'#FFD27A':'#FF8A7E';
-      const bat=s==null?'':`<svg class="wps-bat" width="30" height="14" viewBox="0 0 30 14" aria-hidden="true"><rect x="1" y="1" width="25" height="12" rx="3" fill="none" stroke="rgba(242,244,255,.45)"/><rect x="27" y="4.5" width="2" height="5" rx="1" fill="rgba(242,244,255,.45)"/><rect x="3" y="3" width="${Math.max(1.5,Math.min(100,s)/100*21).toFixed(1)}" height="8" rx="1.5" fill="${farbe}"/></svg><b class="wps-soc"${voll?' style="color:#4CD98A"':''}>${voll?'voll':Math.round(s)+' %'}</b>`;
-      woche.push(`<div class="wps-d${heute?' heute':''}"><span>${heute?'Heute':d.toLocaleDateString('de-DE',{weekday:'short'}).replace('.','')}</span><i class="wps-k${cls}">${q==null?'–':q}</i><em>${h==null?'':Math.round(h)+' kWh'}</em>${bat}</div>`);
-    }
-    return `<div class="wps-body"><div class="wps-l">
-      <div class="wps-top"><div><div class="wps-big">${p??'–'}<small>%</small></div><div class="wps-lbl">heute mit Sonne</div></div>
-        <div class="wps-now">${icon}<b>${jt}</b>${js}</div></div>
-      <div><div class="wps-bar"><i class="wps-sun" style="width:${p??0}%"></i><i class="wps-net" style="width:${p==null?0:100-p}%"></i></div>
-        <div class="wps-leg"><span style="color:#FFD27A">Sonne ${k(H.sun)} kWh</span><span class="wps-lbl">Netz ${k(H.grid)} kWh</span></div></div>
-      ${tipp?`<div class="wps-hr"></div><div class="wps-tip">${tipp[0]}<span>${tipp[1]}</span></div>`:''}
-    </div><div class="wps-r">
-      <div class="wps-klein">Letzte 7 Tage</div>
-      <div class="wps-week">${woche.join('')}</div>
-      <div class="wps-klein">Kreis = % Sonnenstrom der Wärmepumpe · kWh = Netzbezug des Hauses · Akku = höchster Ladestand des Tages</div>
-    </div></div>`;
+    const P=wps.p[wpsSel], x=P.x;
+    const seg='<div class="wps-seg" role="tablist">'+wps.p.map((p,i)=>`<button type="button" role="tab" aria-selected="${i===wpsSel}" class="${i===wpsSel?'on':''}" data-wps-p="${i}">${p.name}</button>`).join('')+'</div>';
+    if(!x) return seg+'<div class="wps-info">Für diesen Zeitraum gibt es noch keine PV-Daten.</div>';
+    const f=v=>(Math.round(v*10)/10).toLocaleString('de-DE',{minimumFractionDigits:v<100?1:0,maximumFractionDigits:v<100?1:0});
+    const p=x.haus.need>0.05?Math.round(x.wp.need/x.haus.need*100):0;
+    const zeile=(lbl,cls,k,gross)=>`<span class="l ${cls}">${lbl}</span>`+['wp','rest','haus'].map(s=>`<span class="${cls}${gross?' gross':''}">${f(x[s][k])}</span>`).join('');
+    const netzWp=x.wp.need>0.05?Math.round(x.wp.grid/x.wp.need*100):null;
+    const teil=x.ab-P.a>15*6e4?` · Daten erst ab ${new Date(x.ab).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})} ${new Date(x.ab).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'';
+    return `<div class="wps-body2"><div class="wps-l2">${seg}
+      <div class="wps-split"><i class="wps-wp" style="width:${p}%">${p>=18?'Wärmepumpe '+p+' %':''}</i><i class="wps-rest" style="width:${100-p}%">${100-p>=18?'Rest-Haus '+(100-p)+' %':''}</i></div>
+      <div class="wps-klein">${netzWp!=null?`Wärmepumpe ${netzWp} % aus dem Netz`:'Wärmepumpe lief noch nicht'}${teil}</div></div>
+      <div class="wps-tb">
+        <span></span><span class="kopf wp">Wärmepumpe</span><span class="kopf">Rest-Haus</span><span class="kopf hell">Haus gesamt</span>
+        ${zeile('braucht','linie stark','need')}
+        ${zeile('− Sonne direkt','sonne','sun')}
+        ${zeile('− aus dem Akku','akku linie2','akku')}
+        ${zeile('= Netz gekauft','netz','grid',true)}
+        <span class="l fuss">alle Werte in kWh</span>
+      </div></div>`;
   }
   function wpsKachel(delay){
-    const a=el('a','glass tile wps rise'); a.href=wpsLink(); a.style.animationDelay=delay+'ms';
-    a.setAttribute('aria-label','Wärmepumpe und Sonne – WAGAEL öffnen');
+    const a=el('div','glass tile wps rise'); a.style.animationDelay=delay+'ms';
     const glow=el('div','glow'); Object.assign(glow.style,{width:'240px',height:'240px',right:'-70px',top:'-110px',background:'radial-gradient(circle, rgba(255,200,90,.5), rgba(255,200,90,0) 70%)'}); a.append(glow);
     const row=el('div','row'); row.style.alignItems='center';
     const t=el('div','ej-title');
     const chip=el('span','chip'); chip.innerHTML=svg(ICONS.sonne,'#FFD27A',22);
-    const txt=el('div'); txt.append(el('span','name','Wärmepumpe & Sonne'),el('span','sub wps-sub','WAGAEL · Solar'));
-    t.append(chip,txt); row.append(t); row.insertAdjacentHTML('beforeend',ARROW); a.append(row);
+    const txt=el('div'); txt.append(el('span','name','Woher kam der Strom?'),el('span','sub wps-sub','Wärmepumpe und Haus'));
+    t.append(chip,txt); row.append(t);
+    const link=el('a','wps-link'); link.href=wpsLink(); link.setAttribute('aria-label','WAGAEL öffnen'); link.innerHTML=ARROW; row.append(link);
+    a.append(row);
     const box=el('div','wps-inhalt'); box.innerHTML=wpsHtml(); a.append(box);
+    a.addEventListener('click',e=>{const b=e.target.closest('[data-wps-p]'); if(!b) return;   // Umschalter
+      wpsSel=+b.dataset.wpsP; try{localStorage.setItem('wps_tab',wpsSel)}catch(_){} wpsZeigen()});
     setTimeout(wpsZeigen,0);
     return a;
   }
   function wpsZeigen(){
     document.querySelectorAll('.wps-inhalt').forEach(n=>n.innerHTML=wpsHtml());
-    document.querySelectorAll('.wps-sub').forEach(n=>n.textContent=wps&&wps.jetzt.t?'Stand '+new Date(wps.jetzt.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'WAGAEL · Solar');
-    document.querySelectorAll('a.wps').forEach(a=>a.href=wpsLink());
+    const P=wps&&wps.p[wpsSel];
+    document.querySelectorAll('.wps-sub').forEach(n=>n.textContent=!P?'Wärmepumpe und Haus':(P.info||(wps.stand?'Stand '+new Date(wps.stand).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'Heute')));
+    document.querySelectorAll('a.wps-link').forEach(a=>a.href=wpsLink());
   }
   setInterval(ladeWPS,5*6e4);           // alle 5 Min neu (wie die Erfassung)
 
