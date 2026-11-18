@@ -233,6 +233,39 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .wp-info.bald{color:#FFD29A}
 .wp-info.ab{color:#FF8A7E;font-weight:600}
 
+/* Wärmepumpe & Sonne (ganz oben) – Stil wie das Wetter-Widget */
+.wps{grid-column:1/-1;border-radius:30px;padding:20px;gap:14px;min-height:0;justify-content:flex-start}
+.wps .chip{width:44px;height:44px;border-radius:14px;background:rgba(255,210,122,.2);border:1px solid rgba(255,214,120,.45)}
+.wps .name{font-size:21px}
+.wps-inhalt{position:relative}
+.wps-body,.wps-l,.wps-r{display:flex;flex-direction:column;gap:12px}
+.wps-body{gap:14px}
+.wps-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.wps-big{font:800 64px/1 "Bricolage Grotesque",Geist,sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.wps-big small{font-size:28px;font-weight:700;margin-left:2px}
+.wps-lbl{font-size:15px;color:var(--muted)}
+.wps-now{text-align:right;font-size:14px;color:var(--muted)}
+.wps-now b{display:block;font:700 18px/1.2 "Bricolage Grotesque",sans-serif;color:var(--text);margin-top:4px}
+.wps-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.12)}
+.wps-bar i{display:block;height:100%}
+.wps-sun{background:#FFD27A}
+.wps-net{background:rgba(242,244,255,.42)}
+.wps-leg{display:flex;justify-content:space-between;font-size:14px;margin-top:6px;font-variant-numeric:tabular-nums}
+.wps-hr{height:1px;background:rgba(255,255,255,.16)}
+.wps-tip{font-size:15px;display:flex;gap:8px;align-items:center}
+.wps-hours{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;align-items:end;text-align:center}
+.wps-h span{display:block;font-size:12px;color:var(--muted)}
+.wps-h em{display:block;font-style:normal;font-size:11px;margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wps-col{height:56px;width:12px;margin:6px auto 0;display:flex;flex-direction:column;justify-content:flex-end}
+.wps-col i{display:block}
+.wps-days{display:flex;flex-direction:column}
+.wps-day{display:grid;grid-template-columns:58px minmax(0,1fr) 112px;align-items:center;gap:10px;font-size:15px;padding:6px 0}
+.wps-day b{font-weight:600}
+.wps-day .wps-bar{height:6px}
+.wps-day em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.wps-info{font-size:14px;color:var(--muted)}
+.wps-klein{font-size:12px;color:var(--muted)}
+
 /* iPad mini: hochkant (ab 700 px) und quer (ab 1000 px) – breiter und größer */
 @media (min-width:700px){
   main{max-width:740px;padding:48px 28px 56px}
@@ -252,6 +285,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   .tile{min-height:170px}
   .grid{grid-template-columns:repeat(3,minmax(0,1fr))}   /* 3 Kacheln nebeneinander */
   .ej,.ds,.group{grid-column:1/-1}                      /* breite Kacheln über die volle Breite */
+  .wps-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:28px}   /* Wärmepumpe & Sonne: zwei Spalten */
 }
 </style>
 </head>
@@ -362,7 +396,9 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     globus:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
     blende:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM14.3 3.3L9 12M20.6 8.5H10.2M18.9 17.5l-5.6-8.8M9.7 20.7l5.3-9.2M3.4 15.5h10.4M5.1 6.5l5.6 8.8',
     zapfsaeule:'M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M7 8h4M14 10h2a2 2 0 0 1 2 2v4.5a1.5 1.5 0 0 0 3 0V8l-3-3',
-    neuladen:'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7'
+    neuladen:'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+    sonne:'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4',
+    mond:'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'
   };
   const ARROW='<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(242,244,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>';
   const $=id=>document.getElementById(id);
@@ -653,11 +689,13 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const s=q.trim().toLowerCase(), passt=t=>!s||t.toLowerCase().includes(s);
     const zeigeEj=passt('eurojackpot lotto');
     const zeigeDs=passt('diesel tanken sprit preis');
+    const zeigeWps=passt('wärmepumpe waermepumpe solar sonne strom wagael');
     const liste=projekte.filter(p=>passt(p.name+' '+(p.beschreibung||'')+' '+(p.gruppe||'')));
     const einzeln=liste.filter(p=>!p.gruppe);
     const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
+    if(zeigeWps) grid.append(wpsKachel(d(160)));   // Wärmepumpe & Sonne ganz oben
     if(zeigeEj) grid.append(ejKachel(d(200)));
     if(zeigeDs){grid.append(dieselKachel(d(240)));dieselZeigen(erstesRender&&!!diesel.aktuell)}
     einzeln.forEach((p,i)=>grid.append(kachel(p,d(280+i*70))));
@@ -1048,8 +1086,137 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   setInterval(()=>ladeDiesel(false),DIESEL.intervall);
   setInterval(wpZeigen,30000);          // Countdown jede halbe Minute
   setInterval(ladeWP,5*6e4);            // Status alle 5 Min neu holen
-  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP();
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP()}});
+  // ===== Wärmepumpe & Sonne: wie viel Solarstrom hat die Wärmepumpe bekommen? =====
+  // Liest mit der WAGAEL-Anmeldung dieses Geräts (gleiche Domain) – ohne Anmeldung zeigt die Kachel einen Hinweis.
+  // Rechnung wie in WAGAEL: jeder Verbrauchsschritt der Wärmepumpe bekommt den Strom-Mix des Hauses (FoxESS); Akku zählt als Sonne.
+  const WPS={url:'https://umkiprxcwqwhbudmvaci.supabase.co',key:'sb_publishable_kvmQTcpqL1AqEdIx51z47A_qjzOUZqu',
+    session:'sb-umkiprxcwqwhbudmvaci-auth-token',tage:7};
+  let wps=null, wpsStatus='laedt', wpsLaedt=false;
+  function wpsLink(){const p=projekte.find(x=>/\/wagaelv2/i.test(x.url));return (p?p.url.replace(/#.*$/,''):'/wagaelv2/')+'#solar'}
+
+  async function wpsToken(){
+    let s=null; try{s=JSON.parse(localStorage.getItem(WPS.session)||'null')}catch(e){}
+    if(!s||!s.refresh_token) return null;
+    if(s.access_token&&(s.expires_at||0)*1000>Date.now()+60e3) return s.access_token;
+    try{ // abgelaufen: erneuern wie WAGAEL selbst und für WAGAEL zurückschreiben
+      const r=await fetch(WPS.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:WPS.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})});
+      if(!r.ok) return null;
+      const n=await r.json(); if(!n.access_token) return null;
+      n.expires_at=n.expires_at||Math.floor(Date.now()/1000)+(n.expires_in||3600);
+      try{localStorage.setItem(WPS.session,JSON.stringify(n))}catch(e){}
+      return n.access_token;
+    }catch(e){return null}
+  }
+  async function wpsAlle(pfad,tok){ // PostgREST liefert max. 1000 Zeilen pro Abruf
+    let out=[],off=0;
+    while(true){
+      const r=await fetch(`${WPS.url}/rest/v1/${pfad}&limit=1000&offset=${off}`,{headers:{apikey:WPS.key,Authorization:'Bearer '+tok}});
+      if(r.status===401) throw new Error('login'); if(!r.ok) throw new Error('HTTP '+r.status);
+      const t=await r.json(); out=out.concat(t); if(t.length<1000||out.length>=20000) return out; off+=1000;
+    }
+  }
+  // Anteil Sonne/Netz am Hausstrom in einem Moment (Akku zählt als Sonne)
+  function wpsMix(p){if(!p||p.load_kw==null)return null;const g=Math.min(1,Math.max(0,(p.grid_kw||0)/Math.max(p.load_kw,0.01)));return{sun:1-g,grid:g}}
+  function wpsMixAt(pv,a,b){ // Mittel der PV-Messungen in [a,b], sonst nächste Messung (max. 6 Min.)
+    let lo=0,hi=pv.length; while(lo<hi){const m=(lo+hi)>>1; if(pv[m].t<a) lo=m+1; else hi=m}
+    let s=0,g=0,n=0; for(let i=lo;i<pv.length&&pv[i].t<=b;i++){const m=wpsMix(pv[i]);if(m){s+=m.sun;g+=m.grid;n++}}
+    if(n) return {sun:s/n,grid:g/n};
+    const mid=(a+b)/2, c=[pv[lo],pv[lo-1]].filter(Boolean).sort((x,y)=>Math.abs(x.t-mid)-Math.abs(y.t-mid))[0];
+    return c&&Math.abs(c.t-mid)<=6*6e4?wpsMix(c):null;
+  }
+  function wpsRechnen(pv,hp,start){
+    const h0=new Date(); h0.setHours(0,0,0,0); const H0=h0.getTime(), now=Date.now();
+    const tage={}, std=Array.from({length:24},()=>({sun:0,grid:0})); let nacht=0;
+    for(let i=1;i<hp.length;i++){
+      const a=hp[i-1], b=hp[i], gap=b.t-a.t;
+      if(a.energy_wh==null||b.energy_wh==null||gap>60*6e4||b.t<start) continue;   // Datenlücke oder vor dem Zeitraum
+      const wh=b.energy_wh-a.energy_wh; if(!(wh>0)) continue;
+      const m=wpsMixAt(pv,b.t-Math.min(gap,5*6e4),b.t), d=new Date(b.t), key=tagIso(d);
+      const T=tage[key]||(tage[key]={t:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),sun:0,grid:0,none:0});
+      if(!m){T.none+=wh;continue}
+      T.sun+=wh*m.sun; T.grid+=wh*m.grid;
+      if(b.t>=H0){const h=d.getHours(); std[h].sun+=wh*m.sun; std[h].grid+=wh*m.grid; if(h<6||h>=22) nacht+=wh*m.grid}
+    }
+    const lh=hp[hp.length-1], lp=pv[pv.length-1];
+    return {tage:Object.values(tage).sort((x,y)=>y.t-x.t), std, nacht, heute:tage[tagIso(new Date())]||{sun:0,grid:0,none:0},
+      jetzt:{kw:lh&&now-lh.t<20*6e4?lh.power_kw:null, mix:lp&&now-lp.t<20*6e4?wpsMix(lp):null, t:lh?lh.t:null}};
+  }
+  async function ladeWPS(){
+    if(wpsLaedt) return; wpsLaedt=true;
+    try{
+      const tok=await wpsToken(); if(!tok){wpsStatus='login';return}
+      const start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-(WPS.tage-1));
+      const F=new Date(start.getTime()-36e5).toISOString();
+      const [pv,hp]=await Promise.all([
+        wpsAlle(`pv_snapshots?select=captured_at,fox_time,load_kw,grid_kw&captured_at=gte.${F}&order=captured_at.asc`,tok),
+        wpsAlle(`snapshots?select=captured_at,energy_wh,power_kw&hp_valve=not.is.null&captured_at=gte.${F}&order=captured_at.asc`,tok)]);
+      wps=wpsRechnen(pv.map(p=>({...p,t:new Date(p.fox_time||p.captured_at).getTime()})).sort((x,y)=>x.t-y.t),
+        hp.map(h=>({...h,t:new Date(h.captured_at).getTime()})),start.getTime());
+      wpsStatus='ok';
+    }catch(e){wpsStatus=e.message==='login'?'login':'fehler'}
+    finally{wpsLaedt=false;wpsZeigen()}
+  }
+
+  function wpsHtml(){
+    if(wpsStatus==='login') return '<div class="wps-info">Auf diesem Gerät nicht bei WAGAEL angemeldet. Einmal in WAGAEL anmelden – dann erscheinen die Werte hier.</div>';
+    if(!wps) return `<div class="wps-info">${wpsStatus==='fehler'?'Daten gerade nicht erreichbar.':'Daten werden geladen …'}</div>`;
+    const k=wh=>(wh/1000).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1});
+    const pc=(s,g)=>s+g>20?Math.round(s/(s+g)*100):null;
+    const H=wps.heute, p=pc(H.sun,H.grid), j=wps.jetzt, kw=v=>v.toFixed(1).replace('.',',');
+    let jt, js='', sonnig=false;
+    if(j.kw==null){jt='keine aktuellen Daten'}
+    else if(j.kw<0.15){jt='steht gerade';js='braucht kaum Strom'}
+    else if(j.mix){const s=Math.round(j.mix.sun*100);sonnig=s>=50;jt=sonnig?'läuft mit Sonne':'läuft mit Netzstrom';js=`jetzt ${kw(j.kw)} kW · ${s} % Sonne`}
+    else{jt='läuft';js=`jetzt ${kw(j.kw)} kW`}
+    const icon=sonnig?svg(ICONS.sonne,'#FFD27A',30):svg(j.kw!=null&&j.kw>=0.15?ICONS.blitz:ICONS.mond,'rgba(242,244,255,.8)',28);
+    let tipp=null;
+    if(wps.nacht>500) tipp=[svg(ICONS.mond,'rgba(242,244,255,.85)',18),`Nachts liefen ${k(wps.nacht)} kWh nur mit Netzstrom`];
+    else if(p!=null&&p>=50) tipp=[svg(ICONS.sonne,'#FFD27A',18),'Mehr als die Hälfte heute mit Sonne'];
+    else if(p!=null) tipp=[svg(ICONS.sonne,'#FFD27A',18),'Warmwasser mittags laden bringt mehr Sonne'];
+    // Stundenleiste: die letzten 12 Stunden von heute
+    const nowH=new Date().getHours(), von=Math.max(0,nowH-11), hs=wps.std.slice(von,nowH+1), mx=Math.max(1,...hs.map(x=>x.sun+x.grid));
+    const stunden=hs.map((x,i)=>{const hG=x.grid/mx*56, hS=x.sun/mx*56, q=pc(x.sun,x.grid);
+      return `<div class="wps-h"><span>${von+i===nowH?'jetzt':von+i}</span><div class="wps-col"><i class="wps-net" style="height:${hG.toFixed(1)}px;border-radius:3px 3px 0 0"></i><i class="wps-sun" style="height:${hS.toFixed(1)}px;${hG<1?'border-radius:3px 3px 0 0':''}"></i></div><em>${q==null?'–':q+' %'}</em></div>`}).join('');
+    // Tageszeilen: nur Tage mit PV-Daten
+    const heuteKey=tagIso(new Date());
+    const tage=wps.tage.filter(t=>t.sun+t.grid>20).slice(0,WPS.tage).map(t=>{const q=pc(t.sun,t.grid), d=new Date(t.t);
+      const l=tagIso(d)===heuteKey?'Heute':d.toLocaleDateString('de-DE',{weekday:'short'}).replace('.','');
+      return `<div class="wps-day"><b>${l}</b><div class="wps-bar"><i class="wps-sun" style="width:${q}%"></i><i class="wps-net" style="width:${100-q}%"></i></div><em>${q} % · ${k(t.sun+t.grid)}</em></div>`}).join('');
+    return `<div class="wps-body"><div class="wps-l">
+      <div class="wps-top"><div><div class="wps-big">${p??'–'}<small>%</small></div><div class="wps-lbl">heute mit Sonne</div></div>
+        <div class="wps-now">${icon}<b>${jt}</b>${js}</div></div>
+      <div><div class="wps-bar"><i class="wps-sun" style="width:${p??0}%"></i><i class="wps-net" style="width:${p==null?0:100-p}%"></i></div>
+        <div class="wps-leg"><span style="color:#FFD27A">Sonne ${k(H.sun)} kWh</span><span class="wps-lbl">Netz ${k(H.grid)} kWh</span></div></div>
+      ${tipp?`<div class="wps-hr"></div><div class="wps-tip">${tipp[0]}<span>${tipp[1]}</span></div>`:''}
+    </div><div class="wps-r">
+      <div class="wps-hours">${stunden}</div>
+      <div class="wps-hr"></div>
+      <div class="wps-days">${tage||'<div class="wps-info">Noch keine Tage mit PV-Daten.</div>'}</div>
+      <div class="wps-klein">gelb = Sonne (PV und Akku) · grau = Netz · Zahl rechts = kWh der Wärmepumpe</div>
+    </div></div>`;
+  }
+  function wpsKachel(delay){
+    const a=el('a','glass tile wps rise'); a.href=wpsLink(); a.style.animationDelay=delay+'ms';
+    a.setAttribute('aria-label','Wärmepumpe und Sonne – WAGAEL öffnen');
+    const glow=el('div','glow'); Object.assign(glow.style,{width:'240px',height:'240px',right:'-70px',top:'-110px',background:'radial-gradient(circle, rgba(255,200,90,.5), rgba(255,200,90,0) 70%)'}); a.append(glow);
+    const row=el('div','row'); row.style.alignItems='center';
+    const t=el('div','ej-title');
+    const chip=el('span','chip'); chip.innerHTML=svg(ICONS.sonne,'#FFD27A',22);
+    const txt=el('div'); txt.append(el('span','name','Wärmepumpe & Sonne'),el('span','sub wps-sub','WAGAEL · Solar'));
+    t.append(chip,txt); row.append(t); row.insertAdjacentHTML('beforeend',ARROW); a.append(row);
+    const box=el('div','wps-inhalt'); box.innerHTML=wpsHtml(); a.append(box);
+    setTimeout(wpsZeigen,0);
+    return a;
+  }
+  function wpsZeigen(){
+    document.querySelectorAll('.wps-inhalt').forEach(n=>n.innerHTML=wpsHtml());
+    document.querySelectorAll('.wps-sub').forEach(n=>n.textContent=wps&&wps.jetzt.t?'Stand '+new Date(wps.jetzt.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'WAGAEL · Solar');
+    document.querySelectorAll('a.wps').forEach(a=>a.href=wpsLink());
+  }
+  setInterval(ladeWPS,5*6e4);           // alle 5 Min neu (wie die Erfassung)
+
+  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP(); ladeWPS();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP();ladeWPS()}});
 })();
 </script>
 </body>
