@@ -307,6 +307,27 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 .wps-d em{display:block;font-style:normal;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .wps-klein{font-size:12px;color:var(--muted)}
 
+/* Obere Reihe: „Woher kam der Strom?“ + Waschmittel (Miele TwinDos) */
+.topreihe{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.topreihe .wps{grid-column:auto}
+.mlk{border-radius:30px;padding:16px;min-height:0;display:flex;flex-direction:row;align-items:center;gap:14px}
+.mlk .chip{background:rgba(120,180,255,.2);border:1px solid rgba(150,200,255,.45);position:relative}
+.mlk-kopf{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:8px}
+.mlk-ring{background:none;border:0;padding:0;margin:0;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;position:relative}
+.mlk-ring:focus-visible,.mlk-link:focus-visible{outline:3px solid #9DB4FF;outline-offset:3px;border-radius:50%}
+.mlk-ring svg{display:block;width:92px;height:92px}
+.mlk-ring .v{transition:stroke-dasharray .7s cubic-bezier(.2,.9,.25,1),stroke .4s}
+.mlk-dots{display:flex;gap:5px}
+.mlk-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28)}
+.mlk-dots i.on{background:#fff}
+.mlk-txt{flex:1;min-width:0;position:relative}
+.mlk-txt .sub{white-space:normal}
+.mlk-txt .rot{color:#FF8A7E}
+.mlk-txt .wechsel{animation:mlkFade .45s ease both}
+@keyframes mlkFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.mlk-link{display:grid;place-items:center;padding:6px;margin:-6px;border-radius:12px;position:relative}
+@media (prefers-reduced-motion: reduce){.mlk-ring .v,.mlk-txt .wechsel{transition:none;animation:none}}
+
 /* iPad mini: hochkant (ab 700 px) und quer (ab 1000 px) – breiter und größer */
 @media (min-width:700px){
   main{max-width:740px;padding:48px 28px 56px}
@@ -327,6 +348,11 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   .grid{grid-template-columns:repeat(3,minmax(0,1fr))}   /* 3 Kacheln nebeneinander */
   .ej,.ds,.group{grid-column:1/-1}                      /* breite Kacheln über die volle Breite */
   .wps-body2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:28px;align-items:start}   /* Woher kam der Strom: zwei Spalten */
+  .topreihe{grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:16px}   /* ¾ Strom · ¼ Waschmittel */
+  .mlk{flex-direction:column;justify-content:space-between;text-align:center;padding:18px}
+  .mlk-kopf{flex-direction:row;align-self:stretch;justify-content:space-between;align-items:center}
+  .mlk-ring svg{width:116px;height:116px}
+  .mlk-txt{flex:none}
 }
 </style>
 </head>
@@ -736,12 +762,18 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const zeigeEj=passt('eurojackpot lotto');
     const zeigeDs=passt('diesel tanken sprit preis');
     const zeigeWps=passt('wärmepumpe waermepumpe solar sonne strom wagael');
+    const zeigeMl=passt('waschmaschine waschmittel twindos miele wäsche trockner');
     const liste=projekte.filter(p=>passt(p.name+' '+(p.beschreibung||'')+' '+(p.gruppe||'')));
     const einzeln=liste.filter(p=>!p.gruppe);
     const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
-    if(zeigeWps) grid.append(wpsKachel(d(160)));   // Wärmepumpe & Sonne ganz oben
+    if(zeigeWps||zeigeMl){                          // obere Reihe: Wärmepumpe & Sonne (¾) + Waschmittel (¼)
+      const reihe=el('div','topreihe');
+      if(zeigeWps) reihe.append(wpsKachel(d(160)));
+      if(zeigeMl) reihe.append(mlKachel(d(190)));
+      grid.append(reihe);
+    }
     if(zeigeEj) grid.append(ejKachel(d(200)));
     if(zeigeDs){grid.append(dieselKachel(d(240)));dieselZeigen(erstesRender&&!!diesel.aktuell)}
     einzeln.forEach((p,i)=>grid.append(kachel(p,d(280+i*70))));
@@ -1270,8 +1302,99 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   }
   setInterval(ladeWPS,5*6e4);           // alle 5 Min neu (wie die Erfassung)
 
-  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP(); ladeWPS();
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP();ladeWPS()}});
+  // ===== Waschmittel (Miele TwinDos) – Daten aus WAGAEL (Tabelle miele_snapshots), gleiche Anmeldung wie oben =====
+  // Kreis zeigt einen Behälter; wechselt alle 5 s automatisch, Tippen schaltet selbst um (dann kein Automatik-Wechsel mehr).
+  let ml=null, mlStatus='laedt', mlLaedt=false, mlSel=0, mlManuell=false, mlDash={};
+  const ML_U=2*Math.PI*40;
+  function mlEta(rows,key,now){ // Abnahme seit dem letzten Nachfüllen → Wäschen und Datum bis leer
+    const pts=rows.filter(r=>r[key]!=null).map(r=>({t:new Date(r.captured_at),v:r[key]}));
+    if(pts.length<2) return null;
+    let st=0; for(let i=1;i<pts.length;i++) if(pts[i].v>pts[i-1].v+5) st=i;
+    const seg=pts.slice(st), drop=seg[0].v-seg[seg.length-1].v, tage=(now-seg[0].t)/864e5;
+    const wm=rows.filter(r=>new Date(r.captured_at)>=seg[0].t);
+    let w=0; for(let i=0;i<wm.length;i++) if(wm[i].status_raw===5&&(i===0||wm[i-1].status_raw!==5)) w++;
+    if(tage<3||drop<3||w<2) return {lernt:true};
+    const cur=seg[seg.length-1].v;
+    return {waeschen:Math.floor(cur/(drop/w)),bis:new Date(now.getTime()+cur/(drop/tage)*864e5)};
+  }
+  async function ladeML(){
+    if(mlLaedt) return; mlLaedt=true;
+    try{
+      const tok=await wpsToken(); if(!tok){mlStatus='login';return}
+      const F=new Date(Date.now()-120*864e5).toISOString();
+      const [rows,stamm]=await Promise.all([
+        wpsAlle(`miele_snapshots?select=captured_at,device_type,status_raw,program,remaining_min,twindos1_pct,twindos2_pct&captured_at=gte.${F}&order=captured_at.asc`,tok),
+        wpsAlle(`hp_stammdaten?select=key,value&key=like.TwinDos*`,tok).catch(()=>[])]);
+      const wm=rows.filter(r=>!/dryer|trockner/i.test(r.device_type||''));
+      const now=new Date(), b=[];
+      [1,2].forEach(nr=>{
+        const key='twindos'+nr+'_pct', last=[...wm].reverse().find(r=>r[key]!=null);
+        if(!last) return;
+        const n=(stamm.find(x=>x.key==='TwinDos '+nr+' Inhalt')||{}).value||('TwinDos '+nr);
+        b.push({nr,v:last[key],name:n,eta:mlEta(wm,key,now)});
+      });
+      const l=wm[wm.length-1];
+      ml={b,run:l&&l.status_raw===5?{prog:l.program,rest:l.remaining_min}:null,fertig:!!(l&&l.status_raw===7)};
+      if(!ml.b.length) mlStatus='leer';
+      else{ if(!mlManuell||mlSel>=ml.b.length) mlSel=ml.b.reduce((m,x,i,a)=>x.v<a[m].v?i:m,0); mlStatus='ok'}
+    }catch(e){mlStatus=e.message==='login'?'login':'fehler'}
+    finally{mlLaedt=false;mlZeigen(false)}
+  }
+  function mlFarbe(v){return v<10?['#FF6B5E','#FF8A7E']:v<30?['#FFB86B','#FFD29A']:['#4CD98A','#8FE8C2']}
+  function mlZeigen(wechsel){
+    document.querySelectorAll('.mlk').forEach(a=>{
+      const ring=a.querySelector('.mlk-ring'), txt=a.querySelector('.mlk-txt'), chip=a.querySelector('.chip');
+      if(!ring||!txt) return;
+      let badge=chip.querySelector('.badge');
+      if(mlStatus!=='ok'){
+        ring.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/></svg>`;
+        txt.innerHTML=`<span class="name">Waschmittel</span><span class="sub">${mlStatus==='login'?'In WAGAEL anmelden – dann erscheinen die Werte hier.':mlStatus==='leer'?'Noch keine TwinDos-Werte.':mlStatus==='fehler'?'Daten gerade nicht erreichbar.':'Daten werden geladen …'}</span>`;
+        if(badge) badge.remove(); return;
+      }
+      const x=ml.b[mlSel], [farbe,hellf]=mlFarbe(x.v), dash=Math.max(2,Math.min(100,x.v)/100*ML_U), alt=mlDash.a??dash;
+      ring.setAttribute('aria-label',`${x.name}: ${x.v} Prozent${ml.b.length>1?' – tippen für den anderen Behälter':''}`);
+      ring.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/>
+        <circle class="v" cx="50" cy="50" r="40" fill="none" stroke="${farbe}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${alt} ${ML_U}" transform="rotate(-90 50 50)"/>
+        <text x="50" y="53" text-anchor="middle" font-size="22" font-weight="700" fill="${hellf}" font-family="Bricolage Grotesque,Geist,sans-serif">${Math.round(x.v)} %</text>
+        <text x="50" y="68" text-anchor="middle" font-size="10" fill="rgba(242,244,255,.72)">TwinDos ${x.nr}</text></svg>
+        ${ml.b.length>1?'<span class="mlk-dots">'+ml.b.map((_,i)=>`<i class="${i===mlSel?'on':''}"></i>`).join('')+'</span>':''}`;
+      const c=ring.querySelector('.v'); requestAnimationFrame(()=>requestAnimationFrame(()=>c.setAttribute('stroke-dasharray',`${dash} ${ML_U}`)));
+      mlDash.a=dash;
+      const dm=d=>d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+      const zust=x.v<=0?'<span class="sub rot">leer – nachfüllen</span>':x.v<10?'<span class="sub rot">fast leer</span>':'';
+      const eta=x.v<=0||!x.eta?'':x.eta.lernt?'<span class="sub">Restlaufzeit wird gelernt …</span>':`<span class="sub">noch ca. ${x.eta.waeschen} Wäsche${x.eta.waeschen===1?'':'n'} · bis ${dm(x.eta.bis)}</span>`;
+      const ander=ml.b.find((_,i)=>i!==mlSel);
+      const lauf=ml.run?`<span class="sub">läuft${ml.run.prog?' · '+ml.run.prog:''}${ml.run.rest!=null?' · noch '+Math.floor(ml.run.rest/60)+':'+String(ml.run.rest%60).padStart(2,'0'):''}</span>`:ml.fertig?'<span class="sub">Wäsche fertig – ausräumen</span>':'';
+      txt.innerHTML=`<div class="${wechsel?'wechsel':''}"><span class="name">${x.name}</span>${zust}${eta}${ander?`<span class="sub">${ander.name} · ${Math.round(ander.v)} %</span>`:''}${lauf}</div>`;
+      const rot=ml.b.some(y=>y.v<10);
+      if(rot){if(!badge){badge=el('span','badge','!');badge.setAttribute('aria-hidden','true');chip.append(badge)}} else if(badge) badge.remove();
+    });
+  }
+  function mlWeiter(manuell){
+    if(mlStatus!=='ok'||!ml||ml.b.length<2) return;
+    if(manuell) mlManuell=true;
+    mlSel=(mlSel+1)%ml.b.length; mlZeigen(true);
+  }
+  function mlKachel(delay){
+    const a=el('div','glass tile mlk rise'); a.style.animationDelay=delay+'ms';
+    const glow=el('div','glow'); Object.assign(glow.style,{width:'200px',height:'200px',right:'-80px',bottom:'-100px',background:'radial-gradient(circle, rgba(110,160,255,.45), rgba(110,160,255,0) 70%)'}); a.append(glow);
+    const kopfz=el('div','mlk-kopf');
+    const chip=el('span','chip'); chip.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BFDBFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="4.5"/><path d="M7 6h.01M10 6h.01"/></svg>';
+    const link=el('a','mlk-link'); link.href=wpsLink().replace(/#.*$/,'')+'#overview'; link.setAttribute('aria-label','WAGAEL öffnen'); link.innerHTML=ARROW;
+    kopfz.append(chip,link);
+    const ring=el('button','mlk-ring'); ring.type='button';
+    ring.addEventListener('click',()=>mlWeiter(true));
+    const txt=el('div','mlk-txt');
+    a.append(kopfz,ring,txt);
+    setTimeout(()=>mlZeigen(false),0);
+    return a;
+  }
+  setInterval(()=>{if(!mlManuell&&!document.hidden) mlWeiter(false)},5000);   // automatischer Wechsel
+  setInterval(ladeML,5*6e4);
+
+
+  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP(); ladeWPS(); ladeML();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP();ladeWPS();ladeML()}});
 })();
 </script>
 </body>
