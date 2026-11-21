@@ -310,6 +310,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 /* Obere Reihe: „Woher kam der Strom?“ + Waschmittel (Miele TwinDos) */
 .topreihe{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .topreihe .wps{grid-column:auto}
+.fb-board{grid-column:1/-1;border-radius:20px;padding:12px 16px;min-height:0;cursor:pointer;display:block}
+.fb-board[hidden]{display:none}
+.fb-kopf{display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:7px}
+.fb-row{display:flex;gap:3px;overflow:hidden}.fb-row+.fb-row{margin-top:4px}
+.fb-c{position:relative;flex:0 0 20px;height:30px;background:#0b0f1f;border-radius:4px;font:600 18px/30px ui-monospace,Menlo,monospace;text-align:center;color:#FFD27A;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.fb-c::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.65)}
+.fb-c.flip{animation:fbflip .09s linear}
+@keyframes fbflip{0%{transform:scaleY(1)}50%{transform:scaleY(.15)}100%{transform:scaleY(1)}}
 .sonne-zeile{grid-column:1/-1;border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:14px;min-height:0}
 .sonne-zeile[hidden]{display:none}
 .sz-sum{min-width:96px;font-size:12px;line-height:1.6;opacity:.8}
@@ -779,6 +787,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
+    if(zeigeWps) grid.append(fbBoard(d(120)));      // Fallblatt-Anzeige ganz oben
     if(zeigeWps||zeigeMl){                          // obere Reihe: Wärmepumpe & Sonne (¾) + Waschmittel (¼)
       const reihe=el('div','topreihe');
       if(zeigeWps) reihe.append(wpsKachel(d(160)));
@@ -1366,25 +1375,107 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
   let sonne=null;
   async function ladeSonne(){
     try{
-      const u=`https://api.open-meteo.com/v1/forecast?latitude=${SONNE.lat}&longitude=${SONNE.lon}&daily=sunshine_duration,temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code&hourly=global_tilted_irradiance&tilt=${SONNE.neigung}&azimuth=${SONNE.ausrichtung}&timezone=Europe%2FBerlin&forecast_days=7`;
-      const [j,hist]=await Promise.all([
+      // past_days=7: Open-Meteo rechnet die letzten 7 Tage nach → Vergleich mit echten Solarwerten = Selbst-Eichung
+      const u=`https://api.open-meteo.com/v1/forecast?latitude=${SONNE.lat}&longitude=${SONNE.lon}&daily=sunshine_duration,temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code,sunrise&hourly=global_tilted_irradiance&tilt=${SONNE.neigung}&azimuth=${SONNE.ausrichtung}&timezone=Europe%2FBerlin&past_days=7&forecast_days=7`;
+      const sb=async(pfad,opt={})=>{try{const tok=await wpsToken(); if(!tok) return null;
+        const r=await fetch(`${WPS.url}/rest/v1/${pfad}`,{...opt,headers:{apikey:WPS.key,Authorization:'Bearer '+tok,'Content-Type':'application/json'}}); return r.ok?r.json():null}catch(e){return null}};
+      const vor8=ymd(new Date(Date.now()-8*864e5));
+      const [j,hist,ist,akku,sets]=await Promise.all([
         fetch(u).then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json()}),
-        (async()=>{try{const tok=await wpsToken(); if(!tok) return [];
-          const r=await fetch(`${WPS.url}/rest/v1/rpc/wagael_verbrauch_tage`,{method:'POST',headers:{apikey:WPS.key,Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:'{"p_tage":60}'});
-          return r.ok?r.json():[]}catch(e){return []}})()]);
-      // Lernen aus eigenen Tagen: Wärmepumpe kWh je Heizgrad, Rest-Haus im Schnitt
-      const hg=t=>Math.max(0.5,SONNE.heizgrenze-t);
-      const wpT=hist.filter(x=>x.wp_kwh!=null&&x.t_mittel!=null), rT=hist.filter(x=>x.haus_kwh!=null&&x.wp_kwh!=null&&x.haus_kwh-x.wp_kwh>0);
+        sb('rpc/wagael_verbrauch_tage',{method:'POST',body:'{"p_tage":60}'}),
+        sb(`pv_daily?select=tag,pv_kwh&tag=gte.${vor8}`),
+        sb('pv_snapshots?select=soc,captured_at&order=captured_at.desc&limit=1'),
+        sb('wagael_settings?select=key,value&key=in.(fox_minsoc,fox_detail)')]);
+      const H=hist||[], hg=t=>Math.max(0.5,SONNE.heizgrenze-t);
+      const wpT=H.filter(x=>x.wp_kwh!=null&&x.t_mittel!=null), rT=H.filter(x=>x.haus_kwh!=null&&x.wp_kwh!=null&&x.haus_kwh-x.wp_kwh>0);
       const kWp=wpT.length>=3?wpT.reduce((a,x)=>a+ +x.wp_kwh,0)/wpT.reduce((a,x)=>a+hg(+x.t_mittel),0):SONNE.wpStd;
       const rest=rT.length>=3?rT.reduce((a,x)=>a+(x.haus_kwh-x.wp_kwh),0)/rT.length:SONNE.restStd;
-      const d=j.daily;
-      sonne={tage:d.time.map((t,i)=>{
-        const kwh=j.hourly.time.reduce((a,x,k)=>x.startsWith(t)?a+(j.hourly.global_tilted_irradiance[k]||0):a,0)/1000*SONNE.kwp*SONNE.pr;
-        const tm=d.temperature_2m_mean[i]??(d.temperature_2m_max[i]+d.temperature_2m_min[i])/2;
-        return {t,solar:kwh,bedarf:rest+kWp*hg(tm),max:d.temperature_2m_max[i],min:d.temperature_2m_min[i],std:(d.sunshine_duration[i]||0)/3600,code:d.weather_code[i]};
-      }),gelernt:wpT.length};
+      const d=j.daily, heute=ymd(new Date());
+      const gti=t=>j.hourly.time.map((x,k)=>({t:x,h:+x.slice(11,13),w:j.hourly.global_tilted_irradiance[k]||0})).filter(x=>x.t.startsWith(t));
+      const roh=t=>gti(t).reduce((a,x)=>a+x.w,0)/1000*SONNE.kwp*SONNE.pr;
+      // Selbst-Eichung: Σ echt / Σ nachgerechnet (vergangene volle Tage), nur mit ≥ 3 Tagen, Faktor 0,4–1,2
+      let faktor=1, eichTage=0;
+      if(ist&&ist.length){let se=0,sm=0; ist.forEach(x=>{if(x.tag<heute&&x.pv_kwh!=null){const m=roh(x.tag); if(m>0.5){se+= +x.pv_kwh; sm+=m; eichTage++}}});
+        if(eichTage>=3&&sm>0) faktor=Math.min(1.2,Math.max(0.4,se/sm))}
+      const S=Object.fromEntries((sets||[]).map(x=>[x.key,x.value?.result]));
+      const kap=+(S.fox_detail?.batteryDesignCapacity)||12.8, res=+(S.fox_minsoc?.minSocOnGrid)||10;
+      sonne={faktor,eichTage,kap,res,soc:akku&&akku[0]?+akku[0].soc:null,gelernt:wpT.length,
+        stunden:t=>gti(t).map(x=>({h:x.h,kwh:x.w/1000*SONNE.kwp*SONNE.pr*faktor})),
+        tage:d.time.map((t,i)=>{if(t<heute) return null;
+          const tm=d.temperature_2m_mean[i]??(d.temperature_2m_max[i]+d.temperature_2m_min[i])/2;
+          return {t,solar:roh(t)*faktor,bedarf:rest+kWp*hg(tm),max:d.temperature_2m_max[i],min:d.temperature_2m_min[i],std:(d.sunshine_duration[i]||0)/3600,code:d.weather_code[i],auf:d.sunrise[i]};
+        }).filter(Boolean)};
+      sonne.plan=fbPlan();
     }catch(e){sonne=null}
-    sonneZeigen();
+    sonneZeigen(); fbStart();
+  }
+
+  // ===== Fallblatt-Anzeige: Solar, Akku voll um, Waschfenster, Akku jetzt – ganz oben =====
+  const WASCH_STD=1.5;   // Waschprogramm in Stunden → Trockner startet danach
+  function fbPlan(){
+    const s=sonne, jetzt=new Date(), morgen=jetzt.getHours()+jetzt.getMinutes()/60>=16.5;
+    const T=s.tage[morgen?1:0]; if(!T) return null;
+    const lastH=T.bedarf/24, ab=morgen?0:jetzt.getHours()+1, std=s.stunden(T.t).filter(x=>x.h>ab);
+    // Akku am Start: heute = jetzt; morgen = jetzt minus Verbrauch bis zur ersten Sonnenstunde
+    let soc=s.soc;
+    if(soc!=null&&morgen){const ersteSonne=(std.find(x=>x.kwh>lastH)||{h:9}).h, nachtStd=(24-jetzt.getHours())+ersteSonne-1;
+      soc=Math.max(s.res,soc-(s.tage[0].bedarf/24)*nachtStd/s.kap*100)}
+    const socStart=soc; let voll=null, ladeAb=null, ueb=[], maxSoc=soc;
+    if(soc!=null) for(const x of std){const ueber=x.kwh-lastH; // Wert = Mittel der Stunde davor → Stunde x.h-1 … x.h
+      if(ueber>0){if(ladeAb==null) ladeAb=x.h-1;
+        if(soc<100){const passt=(100-soc)/100*s.kap; if(ueber>=passt){voll=x.h-1+passt/ueber; soc=100; if(ueber-passt>0.3) ueb.push(x.h)} else soc+=ueber/s.kap*100}
+        else if(ueber>0.3) ueb.push(x.h)}
+      else soc=Math.max(s.res,soc+ueber/s.kap*100);
+      maxSoc=Math.max(maxSoc,soc)}
+    // Waschfenster: Stunden mit Überschuss nach „Akku voll“, sonst die 3 sonnigsten Stunden (wenn es sich lohnt)
+    let fenster=null;
+    if(ueb.length) fenster=[ueb[0]-1,ueb[ueb.length-1]];
+    else{let best=null; for(let k=0;k+2<std.length;k++){const sum=std[k].kwh+std[k+1].kwh+std[k+2].kwh; if(!best||sum>best.sum) best={sum,von:std[k].h-1,bis:std[k+2].h}}
+      if(best&&best.sum/3>lastH+0.8) fenster=[best.von,best.bis]}
+    const besser=s.tage.slice(morgen?2:1).reduce((a,x)=>!a||x.solar>a.solar?x:a,null);
+    return {T,morgen,socStart,voll,ladeAb,maxSoc,fenster,ueberschuss:ueb.length>0,besser};
+  }
+  let fbIdx=0, fbStop=false, fbTimer=null;
+  function fbTexte(){
+    const s=sonne, p=s.plan; if(!p) return [];
+    const r=v=>Math.round(v), hm=h=>{const m=Math.round(h*60); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+    const tag=p.morgen?'MORGEN':'HEUTE', zeile=(l,rr,n)=>{const z=n-l.length-rr.length; return z>=1?l+' '.repeat(z)+rr:(l+' '+rr).slice(0,n)};
+    const N=fbN(), wt=t=>new Date(t+'T12:00').toLocaleDateString('de-DE',{weekday:'short'}).replace('.','').toUpperCase();
+    const M=[];
+    M.push([zeile('SOLAR '+tag, r(p.T.solar)+' KWH',N), zeile('VERBRAUCH', r(p.T.bedarf)+' KWH',N)]);
+    if(p.socStart!=null){
+      M.push(p.voll!=null?[zeile('AKKU VOLL',hm(p.voll),N), zeile('LADEN AB '+hm(p.ladeAb),(r((p.voll-p.ladeAb)*10)/10).toLocaleString('de-DE')+' STD',N)]
+        :[zeile('AKKU NICHT VOLL','',N), zeile('MAX CA.',r(p.maxSoc)+' %',N)]);
+      M.push([zeile('AKKU JETZT',r(s.soc)+' %',N), p.morgen?zeile('MORGEN FRÜH','CA. '+r(p.socStart)+' %',N):zeile('RESERVE',r(s.res)+' %',N)]);
+    }
+    if(p.fenster){const w0=p.fenster[0], tr=Math.min(p.fenster[1]-1,w0+WASCH_STD);
+      M.splice(1,0,[zeile('WASCHEN',hm(w0)+'–'+hm(p.fenster[1]),N), zeile(p.ueberschuss?'TROCKNER AB':'TROCKNER',hm(tr),N)])}
+    else M.splice(1,0,[zeile('WASCHEN','UHRZEIT EGAL',N), p.besser?zeile('BESSER '+wt(p.besser.t),r(p.besser.solar)+' KWH',N):zeile('KAUM SONNE','',N)]);
+    return M;
+  }
+  function fbN(){const b=document.querySelector('.fb-board'); const w=b?b.clientWidth-32:600; return Math.max(16,Math.min(28,Math.floor(w/23)))}
+  const FB_CH=' ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ0123456789:.-–%';
+  function fbZeigen(animiert){
+    const b=document.querySelector('.fb-board'); if(!b) return;
+    if(!sonne||!sonne.plan){b.hidden=true;return} b.hidden=false;
+    const M=fbTexte(); if(!M.length) return; fbIdx%=M.length;
+    const N=fbN(), still=!animiert||matchMedia('(prefers-reduced-motion: reduce)').matches;
+    b.querySelector('.fb-kopf').innerHTML=`<span>${svg(ICONS.sonne,'#FFD27A',14)} ${sonne.plan.morgen?'Morgen':'Heute'} · ${new Date(sonne.plan.T.t+'T12:00').toLocaleDateString('de-DE',{weekday:'long'})}</span><span>${fbIdx+1} / ${M.length}${fbStop?' · angehalten':''}</span>`;
+    b.querySelectorAll('.fb-row').forEach((row,ri)=>{
+      if(row.children.length!==N){row.replaceChildren(...Array.from({length:N},()=>{const c=el('div','fb-c');c.textContent=' ';return c}))}
+      const t=(M[fbIdx][ri]||'').toUpperCase().padEnd(N).slice(0,N);
+      [...row.children].forEach((c,k)=>{const ziel=t[k]; if(still||c.textContent===ziel){c.textContent=ziel;return}
+        let n=0; const steps=3+Math.floor(Math.random()*5);
+        setTimeout(function tick(){if(n<steps){c.textContent=FB_CH[Math.floor(Math.random()*FB_CH.length)];c.classList.remove('flip');void c.offsetWidth;c.classList.add('flip');n++;setTimeout(tick,70)}else c.textContent=ziel},k*25+ri*60)});
+    });
+  }
+  function fbStart(){fbZeigen(true); if(fbTimer) return; fbTimer=setInterval(()=>{if(fbStop||document.hidden) return; fbIdx++; fbZeigen(true)},6000)}
+  function fbBoard(delay){
+    const b=el('div','glass fb-board rise'); b.style.animationDelay=delay+'ms'; b.setAttribute('role','button'); b.tabIndex=0;
+    b.setAttribute('aria-label','Sonne, Akku und Waschzeit – tippen zum Anhalten');
+    b.innerHTML='<div class="fb-kopf"></div><div class="fb-row"></div><div class="fb-row"></div>';
+    const tog=()=>{fbStop=!fbStop; fbZeigen(false)}; b.addEventListener('click',tog); b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog()}});
+    requestAnimationFrame(()=>fbZeigen(false)); return b;
   }
   function sonneZeigen(){
     document.querySelectorAll('.sonne-zeile').forEach(z=>{
