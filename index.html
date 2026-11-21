@@ -310,25 +310,27 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 /* Obere Reihe: „Woher kam der Strom?“ + Waschmittel (Miele TwinDos) */
 .topreihe{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .topreihe .wps{grid-column:auto}
-.fb-board{grid-column:1/-1;border-radius:20px;padding:12px 16px;min-height:0;cursor:pointer;display:block}
-.fb-board[hidden]{display:none}
-.fb-kopf{display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:7px}
-.fb-row{display:flex;gap:3px;overflow:hidden}.fb-row+.fb-row{margin-top:4px}
-.fb-c{position:relative;flex:0 0 20px;height:30px;background:#0b0f1f;border-radius:4px;font:600 18px/30px ui-monospace,Menlo,monospace;text-align:center;color:#FFD27A;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
-.fb-c::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.65)}
-.fb-c.flip{animation:fbflip .09s linear}
-@keyframes fbflip{0%{transform:scaleY(1)}50%{transform:scaleY(.15)}100%{transform:scaleY(1)}}
+.kk-scene{perspective:900px;flex:0 0 280px;min-width:0}
+.kk-flip{position:relative;height:76px;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,.2,.2,1);cursor:pointer}
+.kk-flip.gedreht{transform:rotateX(180deg)}
+.kk-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.kk-back{transform:rotateX(180deg)}
+.kk-k{font-size:12px;opacity:.6;display:flex;justify-content:space-between;gap:8px}
+.kk-flip.angehalten .kk-k span:last-child::after{content:" · angehalten"}
+.kk-h{font-size:18px;font-weight:600;line-height:1.2}
+.kk-s{font-size:13px;opacity:.75;line-height:1.3}
+@media (prefers-reduced-motion:reduce){.kk-flip{transition:none}.kk-flip.kk-fade{animation:kkfade .25s}}
+@keyframes kkfade{from{opacity:.2}to{opacity:1}}
 .sonne-zeile{grid-column:1/-1;border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:14px;min-height:0}
 .sonne-zeile[hidden]{display:none}
-.sz-sum{min-width:96px;font-size:12px;line-height:1.6;opacity:.8}
-.sz-sum b{font-size:14px;font-weight:600;opacity:1}
 .sz-tage{flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:12px}
 .sz-tag{padding:5px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .sz-tag.heute{background:rgba(255,255,255,.09)}
 .sz-wt{opacity:.65}.sz-tag.heute .sz-wt{opacity:1;font-weight:600}
 .sz-kwh{white-space:nowrap}.sz-sol{color:#FFD27A}
 .sz-grad{opacity:.7;white-space:nowrap}.sz-frost{color:#8EC5FF;opacity:1}
-@media (max-width:560px){.sonne-zeile{flex-direction:column;align-items:stretch;gap:6px}.sz-sum{display:flex;gap:12px;min-width:0}.sz-tage{font-size:11px;gap:2px}}
+.sonne-zeile{flex-direction:column;align-items:stretch;gap:8px}.kk-scene{flex:none}.sz-tage{border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
+@media (max-width:420px){.sz-tage{font-size:11px;gap:2px}}
 .mlk{border-radius:30px;padding:16px;min-height:0;display:flex;flex-direction:row;align-items:center;gap:14px}
 .mlk .chip{background:rgba(120,180,255,.2);border:1px solid rgba(150,200,255,.45);position:relative}
 .mlk-kopf{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:8px}
@@ -787,13 +789,12 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const namen=[...new Set(liste.filter(p=>p.gruppe).map(p=>p.gruppe))];
     // Animation nur beim ersten Aufbau, beim Suchen ohne Verzögerung
     const d=i=>erstesRender?i:0;
-    if(zeigeWps) grid.append(fbBoard(d(120)));      // Fallblatt-Anzeige ganz oben
+    if(zeigeWps){const z=el('div','glass sonne-zeile rise'); z.style.animationDelay=d(120)+'ms'; grid.append(z); sonneZeigen()}   // Solar-Karte ganz oben
     if(zeigeWps||zeigeMl){                          // obere Reihe: Wärmepumpe & Sonne (¾) + Waschmittel (¼)
       const reihe=el('div','topreihe');
       if(zeigeWps) reihe.append(wpsKachel(d(160)));
       if(zeigeMl) reihe.append(mlKachel(d(190)));
       grid.append(reihe);
-      if(zeigeWps){const z=el('div','glass sonne-zeile rise'); z.style.animationDelay=d(200)+'ms'; grid.append(z); sonneZeigen()}   // Sonne & Solar-Prognose (eine Zeile)
     }
     if(zeigeEj) grid.append(ejKachel(d(200)));
     if(zeigeDs){grid.append(dieselKachel(d(240)));dieselZeigen(erstesRender&&!!diesel.aktuell)}
@@ -1407,7 +1408,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
         }).filter(Boolean)};
       sonne.plan=fbPlan();
     }catch(e){sonne=null}
-    sonneZeigen(); fbStart();
+    sonneZeigen();
   }
 
   // ===== Fallblatt-Anzeige: Solar, Akku voll um, Waschfenster, Akku jetzt – ganz oben =====
@@ -1435,48 +1436,37 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const besser=s.tage.slice(morgen?2:1).reduce((a,x)=>!a||x.solar>a.solar?x:a,null);
     return {T,morgen,socStart,voll,ladeAb,maxSoc,fenster,ueberschuss:ueb.length>0,besser};
   }
-  let fbIdx=0, fbStop=false, fbTimer=null;
-  function fbTexte(){
-    const s=sonne, p=s.plan; if(!p) return [];
-    const r=v=>Math.round(v), hm=h=>{const m=Math.round(h*60); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
-    const tag=p.morgen?'MORGEN':'HEUTE', zeile=(l,rr,n)=>{const z=n-l.length-rr.length; return z>=1?l+' '.repeat(z)+rr:(l+' '+rr).slice(0,n)};
-    const N=fbN(), wt=t=>new Date(t+'T12:00').toLocaleDateString('de-DE',{weekday:'short'}).replace('.','').toUpperCase();
-    const M=[];
-    M.push([zeile('SOLAR '+tag, r(p.T.solar)+' KWH',N), zeile('VERBRAUCH', r(p.T.bedarf)+' KWH',N)]);
-    if(p.socStart!=null){
-      M.push(p.voll!=null?[zeile('AKKU VOLL',hm(p.voll),N), zeile('LADEN AB '+hm(p.ladeAb),(r((p.voll-p.ladeAb)*10)/10).toLocaleString('de-DE')+' STD',N)]
-        :[zeile('AKKU NICHT VOLL','',N), zeile('MAX CA.',r(p.maxSoc)+' %',N)]);
-      M.push([zeile('AKKU JETZT',r(s.soc)+' %',N), p.morgen?zeile('MORGEN FRÜH','CA. '+r(p.socStart)+' %',N):zeile('RESERVE',r(s.res)+' %',N)]);
-    }
+  // ===== Drehende Textkarte in der Solar-Karte (wie eine Karteikarte, automatisch) =====
+  let kkIdx=0, kkStop=false, kkTimer=null, kkVorne=true;
+  function kkTexte(){
+    const s=sonne, p=s.plan, T=s.tage, r=v=>Math.round(v).toLocaleString('de-DE');
+    const hm=h=>{const m=Math.round(h*60); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+    const wt=t=>new Date(t+'T12:00').toLocaleDateString('de-DE',{weekday:'long'});
+    const K=[{k:'Diese Woche',h:`☀️ ${r(T.reduce((a,x)=>a+x.solar,0))} kWh Sonne · 🏠 ${r(T.reduce((a,x)=>a+x.bedarf,0))} kWh`,s:`gelb = Solar, weiß = Verbrauch pro Tag${s.eichTage>=3?` · Prognose an ${s.eichTage} echten Tagen geeicht`:''}`}];
+    if(!p) return K;
+    const tag=p.morgen?'morgen':'heute';
     if(p.fenster){const w0=p.fenster[0], tr=Math.min(p.fenster[1]-1,w0+WASCH_STD);
-      M.splice(1,0,[zeile('WASCHEN',hm(w0)+'–'+hm(p.fenster[1]),N), zeile(p.ueberschuss?'TROCKNER AB':'TROCKNER',hm(tr),N)])}
-    else M.splice(1,0,[zeile('WASCHEN','UHRZEIT EGAL',N), p.besser?zeile('BESSER '+wt(p.besser.t),r(p.besser.solar)+' KWH',N):zeile('KAUM SONNE','',N)]);
-    return M;
+      K.push({k:'Waschen '+tag,h:`🧺 ${hm(w0)} – ${hm(p.fenster[1])} Uhr`,s:`Waschmaschine ${hm(w0)} · Trockner ${hm(tr)}${p.ueberschuss?' – Akku voll, Sonnenstrom übrig':' – größtenteils Sonnenstrom'}`})}
+    else K.push({k:'Waschen '+tag,h:'🧺 Uhrzeit egal',s:p.besser&&p.besser.solar>p.T.solar*1.5?`kaum Sonne – besser ${wt(p.besser.t)} (ca. ${r(p.besser.solar)} kWh)`:'kaum Sonne – Strom kommt so oder so aus Akku und Netz'});
+    if(p.socStart!=null){
+      K.push(p.voll!=null?{k:'Akku '+tag,h:`🔋 voll um ca. ${hm(p.voll)}`,s:`lädt ab ${hm(p.ladeAb)} · ${(Math.round((p.voll-p.ladeAb)*10)/10).toLocaleString('de-DE')} Std.${p.ueberschuss?' · danach Überschuss':''}`}
+        :{k:'Akku '+tag,h:p.maxSoc>=90?`🔋 fast voll – max. ${r(p.maxSoc)} %`:`🔋 wird nicht voll – max. ${r(p.maxSoc)} %`,s:p.ladeAb!=null?`lädt ab ${hm(p.ladeAb)} · kein Überschuss`:'zu wenig Sonne zum Laden'});
+      K.push({k:'Akku jetzt',h:`🌙 ${r(s.soc)} %`,s:p.morgen?`morgen früh ca. ${r(p.socStart)} %${p.socStart<=s.res+1?' (Reserve)':''}`:`Reserve ${r(s.res)} % · ${s.kap.toLocaleString('de-DE')} kWh Speicher`});
+    }
+    return K;
   }
-  function fbN(){const b=document.querySelector('.fb-board'); const w=b?b.clientWidth-32:600; return Math.max(16,Math.min(28,Math.floor(w/23)))}
-  const FB_CH=' ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ0123456789:.-–%';
-  function fbZeigen(animiert){
-    const b=document.querySelector('.fb-board'); if(!b) return;
-    if(!sonne||!sonne.plan){b.hidden=true;return} b.hidden=false;
-    const M=fbTexte(); if(!M.length) return; fbIdx%=M.length;
-    const N=fbN(), still=!animiert||matchMedia('(prefers-reduced-motion: reduce)').matches;
-    b.querySelector('.fb-kopf').innerHTML=`<span>${svg(ICONS.sonne,'#FFD27A',14)} ${sonne.plan.morgen?'Morgen':'Heute'} · ${new Date(sonne.plan.T.t+'T12:00').toLocaleDateString('de-DE',{weekday:'long'})}</span><span>${fbIdx+1} / ${M.length}${fbStop?' · angehalten':''}</span>`;
-    b.querySelectorAll('.fb-row').forEach((row,ri)=>{
-      if(row.children.length!==N){row.replaceChildren(...Array.from({length:N},()=>{const c=el('div','fb-c');c.textContent=' ';return c}))}
-      const t=(M[fbIdx][ri]||'').toUpperCase().padEnd(N).slice(0,N);
-      [...row.children].forEach((c,k)=>{const ziel=t[k]; if(still||c.textContent===ziel){c.textContent=ziel;return}
-        let n=0; const steps=3+Math.floor(Math.random()*5);
-        setTimeout(function tick(){if(n<steps){c.textContent=FB_CH[Math.floor(Math.random()*FB_CH.length)];c.classList.remove('flip');void c.offsetWidth;c.classList.add('flip');n++;setTimeout(tick,70)}else c.textContent=ziel},k*25+ri*60)});
+  function kkFuellen(face,x,n,len){face.innerHTML=`<div class="kk-k"><span>${x.k}</span><span>${n+1}/${len}</span></div><div class="kk-h">${x.h}</div><div class="kk-s">${x.s}</div>`}
+  function kkZeigen(dreh){
+    document.querySelectorAll('.sonne-zeile .kk-flip').forEach(f=>{
+      const K=kkTexte(); kkIdx%=K.length;
+      const [A,B]=f.querySelectorAll('.kk-face'), ziel=kkVorne?A:B;
+      if(dreh){const neu=kkVorne?B:A; kkFuellen(neu,K[kkIdx],kkIdx,K.length);
+        if(matchMedia('(prefers-reduced-motion: reduce)').matches){f.classList.add('kk-fade'); setTimeout(()=>f.classList.remove('kk-fade'),250)}
+        kkVorne=!kkVorne; f.classList.toggle('gedreht',!kkVorne)}
+      else kkFuellen(ziel,K[kkIdx],kkIdx,K.length);
     });
   }
-  function fbStart(){fbZeigen(true); if(fbTimer) return; fbTimer=setInterval(()=>{if(fbStop||document.hidden) return; fbIdx++; fbZeigen(true)},6000)}
-  function fbBoard(delay){
-    const b=el('div','glass fb-board rise'); b.style.animationDelay=delay+'ms'; b.setAttribute('role','button'); b.tabIndex=0;
-    b.setAttribute('aria-label','Sonne, Akku und Waschzeit – tippen zum Anhalten');
-    b.innerHTML='<div class="fb-kopf"></div><div class="fb-row"></div><div class="fb-row"></div>';
-    const tog=()=>{fbStop=!fbStop; fbZeigen(false)}; b.addEventListener('click',tog); b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog()}});
-    requestAnimationFrame(()=>fbZeigen(false)); return b;
-  }
+  function kkStart(){if(kkTimer) return; kkTimer=setInterval(()=>{if(kkStop||document.hidden||!sonne) return; kkIdx++; kkZeigen(true)},6000)}
   function sonneZeigen(){
     document.querySelectorAll('.sonne-zeile').forEach(z=>{
       if(!sonne){z.hidden=true;return} z.hidden=false;
@@ -1486,10 +1476,13 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
         return x.std>=3?svg(ICONS.sonne,'#FFD27A',20):x.std>=1?svg(ICONS.sonne,'rgba(255,210,122,.6)',20):svg(WICONS.wolke,'rgba(255,255,255,.6)',20)};
       const grad=v=>`${Math.round(v)}°`, frost=v=>v<0?`<span class="sz-frost">${grad(v)} ❄</span>`:grad(v);
       const wt=i=>i===0?'heute':new Date(T[i].t+'T12:00').toLocaleDateString('de-DE',{weekday:'short'}).replace('.','');
-      z.innerHTML=`<div class="sz-sum"><div>Woche</div><div>${svg(ICONS.sonne,'#FFD27A',13)} <b>${r(T.reduce((a,x)=>a+x.solar,0))}</b> kWh</div><div>⌂ <b>${r(T.reduce((a,x)=>a+x.bedarf,0))}</b> kWh</div></div>`
+      z.innerHTML=`<div class="kk-scene"><div class="kk-flip${kkVorne?'':' gedreht'}" role="button" tabindex="0" aria-label="Sonne, Waschzeit und Akku – tippen zum Anhalten"><div class="kk-face"></div><div class="kk-face kk-back"></div></div></div>`
         +`<div class="sz-tage">${T.map((x,i)=>`<div class="sz-tag${i===0?' heute':''}"><div class="sz-wt">${wt(i)}</div>${icon(x)}<div class="sz-kwh"><span class="sz-sol">${r(x.solar)}</span> / ${r(x.bedarf)}</div><div class="sz-grad">${grad(x.max)} / ${frost(x.min)}</div></div>`).join('')}</div>`;
+      const fl=z.querySelector('.kk-flip'), tog=()=>{kkStop=!kkStop; fl.classList.toggle('angehalten',kkStop)};
+      fl.addEventListener('click',tog); fl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog()}});
       z.title=`gelb = Solar-Prognose, weiß = geschätzter Verbrauch in kWh (Akku nicht eingerechnet)${sonne.gelernt<3?' · Verbrauch noch mit Standardwerten geschätzt':''}`;
     });
+    if(sonne){kkZeigen(false); kkStart()}
   }
   function mlFarbe(v){return v<10?['#FF6B5E','#FF8A7E']:v<30?['#FFB86B','#FFD29A']:['#4CD98A','#8FE8C2']}
   function mlZeigen(wechsel){
