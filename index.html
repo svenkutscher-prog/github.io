@@ -310,6 +310,17 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
 /* Obere Reihe: „Woher kam der Strom?“ + Waschmittel (Miele TwinDos) */
 .topreihe{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .topreihe .wps{grid-column:auto}
+.sonne-zeile{grid-column:1/-1;border-radius:20px;padding:10px 16px;display:flex;align-items:center;gap:14px;min-height:0}
+.sonne-zeile[hidden]{display:none}
+.sz-sum{min-width:96px;font-size:12px;line-height:1.6;opacity:.8}
+.sz-sum b{font-size:14px;font-weight:600;opacity:1}
+.sz-tage{flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:12px}
+.sz-tag{padding:5px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.sz-tag.heute{background:rgba(255,255,255,.09)}
+.sz-wt{opacity:.65}.sz-tag.heute .sz-wt{opacity:1;font-weight:600}
+.sz-kwh{white-space:nowrap}.sz-sol{color:#FFD27A}
+.sz-grad{opacity:.7;white-space:nowrap}.sz-frost{color:#8EC5FF;opacity:1}
+@media (max-width:560px){.sonne-zeile{flex-direction:column;align-items:stretch;gap:6px}.sz-sum{display:flex;gap:12px;min-width:0}.sz-tage{font-size:11px;gap:2px}}
 .mlk{border-radius:30px;padding:16px;min-height:0;display:flex;flex-direction:row;align-items:center;gap:14px}
 .mlk .chip{background:rgba(120,180,255,.2);border:1px solid rgba(150,200,255,.45);position:relative}
 .mlk-kopf{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:8px}
@@ -773,6 +784,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       if(zeigeWps) reihe.append(wpsKachel(d(160)));
       if(zeigeMl) reihe.append(mlKachel(d(190)));
       grid.append(reihe);
+      if(zeigeWps){const z=el('div','glass sonne-zeile rise'); z.style.animationDelay=d(200)+'ms'; grid.append(z); sonneZeigen()}   // Sonne & Solar-Prognose (eine Zeile)
     }
     if(zeigeEj) grid.append(ejKachel(d(200)));
     if(zeigeDs){grid.append(dieselKachel(d(240)));dieselZeigen(erstesRender&&!!diesel.aktuell)}
@@ -1229,6 +1241,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     const rest={}; for(const key of ['need','sun','akku','grid']) rest[key]=Math.max(0,haus[key]-wp[key]);
     return {wp,rest,haus,ab:inP[0].t};
   }
+  let wpsCache={F:null,pv:[],hp:[]};
   async function ladeWPS(){
     if(wpsLaedt) return; wpsLaedt=true;
     try{
@@ -1238,9 +1251,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       const g0=new Date(h0); g0.setDate(g0.getDate()-1);
       const m0=new Date(h0.getFullYear(),h0.getMonth(),1);
       const start=Math.min(w0.getTime(),m0.getTime()), F=new Date(start-36e5).toISOString();
-      const [pvR,hpR]=await Promise.all([
-        wpsAlle(`pv_snapshots?select=captured_at,fox_time,load_kw,grid_kw,bat_discharge_kw,pv_total_kwh,grid_total_kwh,feedin_total_kwh,bat_charge_total_kwh,bat_discharge_total_kwh&captured_at=gte.${F}&order=captured_at.asc`,tok),
-        wpsAlle(`snapshots?select=captured_at,energy_wh&hp_valve=not.is.null&captured_at=gte.${F}&order=captured_at.asc`,tok)]);
+      // Datenverkehr sparen: einmal am Tag alles laden, danach nur die neuen Messwerte seit dem letzten Abruf
+      if(wpsCache.F!==F) wpsCache={F,pv:[],hp:[]};
+      const seit=(arr)=>arr.length?`gt.${encodeURIComponent(arr[arr.length-1].captured_at)}`:`gte.${F}`;
+      const [pvN,hpN]=await Promise.all([
+        wpsAlle(`pv_snapshots?select=captured_at,fox_time,load_kw,grid_kw,bat_discharge_kw,pv_total_kwh,grid_total_kwh,feedin_total_kwh,bat_charge_total_kwh,bat_discharge_total_kwh&captured_at=${seit(wpsCache.pv)}&order=captured_at.asc`,tok),
+        wpsAlle(`snapshots?select=captured_at,energy_wh&hp_valve=not.is.null&captured_at=${seit(wpsCache.hp)}&order=captured_at.asc`,tok)]);
+      wpsCache.pv.push(...pvN); wpsCache.hp.push(...hpN);
+      const pvR=wpsCache.pv, hpR=wpsCache.hp;
       const pv=pvR.map(p=>({...p,t:new Date(p.fox_time||p.captured_at).getTime()})).sort((x,y)=>x.t-y.t);
       const hp=hpR.map(h=>({...h,t:new Date(h.captured_at).getTime()}));
       const now=Date.now(), dm=d=>d.toLocaleDateString('de-DE',{day:'numeric',month:'numeric'});
@@ -1300,7 +1318,7 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     document.querySelectorAll('.wps-sub').forEach(n=>n.textContent=!P?'Wärmepumpe und Haus':(P.info||(wps.stand?'Stand '+new Date(wps.stand).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'Heute')));
     document.querySelectorAll('a.wps-link').forEach(a=>a.href=wpsLink());
   }
-  setInterval(ladeWPS,5*6e4);           // alle 5 Min neu (wie die Erfassung)
+  setInterval(ladeWPS,30*6e4);          // alle 30 Min neu (spart Datenverkehr; „Neu laden“-Knopf holt sofort)
 
   // ===== Waschmittel (Miele TwinDos) – Daten aus WAGAEL (Tabelle miele_snapshots), gleiche Anmeldung wie oben =====
   // Kreis zeigt einen Behälter; wechselt alle 5 s automatisch, Tippen schaltet selbst um (dann kein Automatik-Wechsel mehr).
@@ -1339,6 +1357,48 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
       else{ if(!mlManuell||mlSel>=ml.b.length) mlSel=ml.b.reduce((m,x,i,a)=>x.v<a[m].v?i:m,0); mlStatus='ok'}
     }catch(e){mlStatus=e.message==='login'?'login':'fehler'}
     finally{mlLaedt=false;mlZeigen(false)}
+  }
+  // ☀️ Sonne & Verbrauch – 7 Tage: Solar-Prognose (Open-Meteo, kostenlos, ohne Schlüssel) gegen geschätzten Verbrauch
+  // Solar = Einstrahlung auf die Modulfläche × kWp × Verlustfaktor · neigung = Dachneigung in Grad · ausrichtung: 0 = Süd, -90 = Ost, 90 = West
+  // Verbrauch = Rest-Haus (Ø gemessen) + Wärmepumpe × Heizgrade (aus eigenen Tageswerten, SQL 26: wagael_verbrauch_tage)
+  const SONNE={lat:50.878,lon:6.177,kwp:11,neigung:35,ausrichtung:0,pr:0.85,heizgrenze:18,restStd:14,wpStd:1.6};
+  const WICONS={wolke:'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z',regen:'M16 13v8M8 13v8M12 15v8M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25',schnee:'M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1L19.1 4.9'};
+  let sonne=null;
+  async function ladeSonne(){
+    try{
+      const u=`https://api.open-meteo.com/v1/forecast?latitude=${SONNE.lat}&longitude=${SONNE.lon}&daily=sunshine_duration,temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code&hourly=global_tilted_irradiance&tilt=${SONNE.neigung}&azimuth=${SONNE.ausrichtung}&timezone=Europe%2FBerlin&forecast_days=7`;
+      const [j,hist]=await Promise.all([
+        fetch(u).then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json()}),
+        (async()=>{try{const tok=await wpsToken(); if(!tok) return [];
+          const r=await fetch(`${WPS.url}/rest/v1/rpc/wagael_verbrauch_tage`,{method:'POST',headers:{apikey:WPS.key,Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:'{"p_tage":60}'});
+          return r.ok?r.json():[]}catch(e){return []}})()]);
+      // Lernen aus eigenen Tagen: Wärmepumpe kWh je Heizgrad, Rest-Haus im Schnitt
+      const hg=t=>Math.max(0.5,SONNE.heizgrenze-t);
+      const wpT=hist.filter(x=>x.wp_kwh!=null&&x.t_mittel!=null), rT=hist.filter(x=>x.haus_kwh!=null&&x.wp_kwh!=null&&x.haus_kwh-x.wp_kwh>0);
+      const kWp=wpT.length>=3?wpT.reduce((a,x)=>a+ +x.wp_kwh,0)/wpT.reduce((a,x)=>a+hg(+x.t_mittel),0):SONNE.wpStd;
+      const rest=rT.length>=3?rT.reduce((a,x)=>a+(x.haus_kwh-x.wp_kwh),0)/rT.length:SONNE.restStd;
+      const d=j.daily;
+      sonne={tage:d.time.map((t,i)=>{
+        const kwh=j.hourly.time.reduce((a,x,k)=>x.startsWith(t)?a+(j.hourly.global_tilted_irradiance[k]||0):a,0)/1000*SONNE.kwp*SONNE.pr;
+        const tm=d.temperature_2m_mean[i]??(d.temperature_2m_max[i]+d.temperature_2m_min[i])/2;
+        return {t,solar:kwh,bedarf:rest+kWp*hg(tm),max:d.temperature_2m_max[i],min:d.temperature_2m_min[i],std:(d.sunshine_duration[i]||0)/3600,code:d.weather_code[i]};
+      }),gelernt:wpT.length};
+    }catch(e){sonne=null}
+    sonneZeigen();
+  }
+  function sonneZeigen(){
+    document.querySelectorAll('.sonne-zeile').forEach(z=>{
+      if(!sonne){z.hidden=true;return} z.hidden=false;
+      const r=v=>Math.round(v).toLocaleString('de-DE'), T=sonne.tage;
+      const icon=x=>{const c=x.code; if((c>=71&&c<=77)||c===85||c===86) return svg(WICONS.schnee,'#8EC5FF',20);
+        if((c>=51&&c<=67)||(c>=80&&c<=82)||c>=95) return svg(WICONS.regen,'rgba(255,255,255,.6)',20);
+        return x.std>=3?svg(ICONS.sonne,'#FFD27A',20):x.std>=1?svg(ICONS.sonne,'rgba(255,210,122,.6)',20):svg(WICONS.wolke,'rgba(255,255,255,.6)',20)};
+      const grad=v=>`${Math.round(v)}°`, frost=v=>v<0?`<span class="sz-frost">${grad(v)} ❄</span>`:grad(v);
+      const wt=i=>i===0?'heute':new Date(T[i].t+'T12:00').toLocaleDateString('de-DE',{weekday:'short'}).replace('.','');
+      z.innerHTML=`<div class="sz-sum"><div>Woche</div><div>${svg(ICONS.sonne,'#FFD27A',13)} <b>${r(T.reduce((a,x)=>a+x.solar,0))}</b> kWh</div><div>⌂ <b>${r(T.reduce((a,x)=>a+x.bedarf,0))}</b> kWh</div></div>`
+        +`<div class="sz-tage">${T.map((x,i)=>`<div class="sz-tag${i===0?' heute':''}"><div class="sz-wt">${wt(i)}</div>${icon(x)}<div class="sz-kwh"><span class="sz-sol">${r(x.solar)}</span> / ${r(x.bedarf)}</div><div class="sz-grad">${grad(x.max)} / ${frost(x.min)}</div></div>`).join('')}</div>`;
+      z.title=`gelb = Solar-Prognose, weiß = geschätzter Verbrauch in kWh (Akku nicht eingerechnet)${sonne.gelernt<3?' · Verbrauch noch mit Standardwerten geschätzt':''}`;
+    });
   }
   function mlFarbe(v){return v<10?['#FF6B5E','#FF8A7E']:v<30?['#FFB86B','#FFD29A']:['#4CD98A','#8FE8C2']}
   function mlZeigen(wechsel){
@@ -1390,11 +1450,14 @@ h1{margin:0;font:800 40px/1.02 "Bricolage Grotesque",Geist,sans-serif;letter-spa
     return a;
   }
   setInterval(()=>{if(!mlManuell&&!document.hidden) mlWeiter(false)},5000);   // automatischer Wechsel
-  setInterval(ladeML,5*6e4);
+  setInterval(ladeML,30*6e4);
 
 
-  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP(); ladeWPS(); ladeML();
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP();ladeWPS();ladeML()}});
+  kopf(); laden(); ladeEnergie(); ladeEinkauf(); ladeDiesel(false); ladeWP(); ladeWPS(); ladeML(); ladeSonne();
+  setInterval(ladeSonne,30*6e4);
+  let zuletztSichtbar=Date.now();   // beim Aufwecken nur neu laden, wenn der letzte Abruf über 10 Min her ist
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){ladeEinkauf();ladeEnergie();ladeDiesel(false);ladeSchein();ladeWP();
+    if(Date.now()-zuletztSichtbar>10*6e4){zuletztSichtbar=Date.now();ladeWPS();ladeML();ladeSonne()}}});
 })();
 </script>
 </body>
